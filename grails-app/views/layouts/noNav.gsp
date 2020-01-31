@@ -15,6 +15,7 @@
 		<g:javascript>var contextPath="${request.contextPath}";</g:javascript>
 		
 		<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" />
+		<meta property="og:image" content="http://lingoto-beta.com/static/images/DTlogo.png"/>
 
 		<r:require modules="bootstrap"/>
 		<r:require modules="bootstrap_utils"/>
@@ -24,23 +25,22 @@
     </head>
     <body>
     
-	    <div class="container-fluid">
-			<div class="row">
-				<div class="col-md-12">
-					<g:render template="/header"/>
-					<div id="Content" class="container">
-						<g:layoutBody />
-					</div>
-				</div>
+	    <div id="wrap">
+		  <div id="main">
+		    <g:render template="/header"/>
+			<div id="Content" class="container">
+				<g:layoutBody />
 			</div>
+		  </div>
 		</div>
 		<!-- Enable to overwrite Footer by individual page -->
-        <g:if test="${ pageProperty(name:'page.footer') }">
+		<g:if test="${ pageProperty(name:'page.footer') }">
 		    <g:pageProperty name="page.footer" />
 		</g:if>
 		<g:else>
 			<g:render template="/footer"/>														
 		</g:else>
-        <r:layoutResources/>
+
+    <r:layoutResources/>
     </body>
 </html>

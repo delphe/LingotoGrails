@@ -6,6 +6,8 @@ class TranslatedMessageController {
 	def translatedMessageService
 	
     def index = {
+		//TODO: 06- if admin user, display previously saved translations along with user's name (Load up Google translations after creating user google@lingoto.com)
+		//TODO: Phase 2- Compare each user translations and if different display as red, if same display as green. 
 		def user = springSecurityService.currentUser
 
 		session.usersLanguage = user.account.primaryLanguage.lingo

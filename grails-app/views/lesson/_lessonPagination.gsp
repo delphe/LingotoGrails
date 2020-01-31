@@ -1,7 +1,7 @@
 <div class="text-center">
 	<ul class="pagination pagination-lg">
 		<li>
-			<g:if test="${filteredLessonByAuthorList && filteredLessonByAuthorList?.size()>0 && filteredLessonByAuthorList[0]?.toInteger() != lesson?.id?.toInteger()}">
+			<g:if test="${filteredLessonByAuthorList && filteredLessonByAuthorList?.size()>1 && filteredLessonByAuthorList[0]?.toInteger() != lesson?.id?.toInteger()}">
 					<g:link controller="lesson" action="lessonPlan"
 						params="[previous:true,id:lesson?.id,filteredLessonByAuthorList:filteredLessonByAuthorList,
 								beginner:params.beginner,
@@ -16,7 +16,8 @@
 		<li>
 			
 				<g:paginate action="learn"
-					total="${filteredLessonByAuthorList?.size()?:0}" max="1"
+					total="${filteredLessonByAuthorList?.size()?:1}" max="1" 
+					maxsteps="8"
 					omitPrev="true" omitNext="true" 
 					params="[beginner:params.beginner,
 							intermediate:params.intermediate,
@@ -26,7 +27,7 @@
 			
 		</li>
 		<li>
-			<g:if test="${filteredLessonByAuthorList && filteredLessonByAuthorList?.size()>0}">
+			<g:if test="${filteredLessonByAuthorList && filteredLessonByAuthorList?.size()>1}">
 				<g:if test="${session.credits <= 0 && !viewedLesson?.translation}">
 						<g:link controller="lesson" action="lessonPlan" class="hideit unlocked"
 							params="[next:true,id:lesson?.id,filteredLessonByAuthorList:filteredLessonByAuthorList,

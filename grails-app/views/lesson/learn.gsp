@@ -1,20 +1,16 @@
 <html>
 <head>
-	<title>lingoto - <g:message code="learn.label" default="Learn" /></title>
+	<title><g:if test="${grailsApplication.metadata.getApplicationVersion().contains("SNAPSHOT")}"><g:message code="default.title.label" default="lingoto"/>-beta</g:if>
+        	<g:else>
+        		<g:message code="default.title.label" default="lingoto"/>
+        	</g:else> - <g:message code="learn.label" default="Learn" /></title>
 	<meta name="layout" content="main" />
-	
-    <g:if test="${sec?.loggedInUserInfo(field: 'username') == lesson?.user?.username}">
-		<modalbox:modalIncludes />
-	</g:if>
-	<g:else>
-<%--			lesson.js doesn't seem to work with the modalbox plugin--%>
-		<g:javascript library="lesson" />
-	</g:else>
-	
-	<sm:inlinePlayer/>
+	<link rel="stylesheet" href="${createLinkTo(dir: 'css', file: 'inlineplayer.css')}"/>
+	<script type="text/javascript" src="/js/soundmanager2.js"></script>
+	<script type="text/javascript" src="/js/inlineplayer.js"></script>
+	<g:javascript library="lesson" />
 </head>
 <body>
-
 		
 <g:if test="${flash.message}">
 	<g:render template="percentageModal" model="['percentCorrect':flash.message]"/>
@@ -23,20 +19,21 @@
   <div class="errors" >${flash.error}</div>
 </g:if>
 <g:if test="${lesson?.id}">
-	<div class="row">
-		<div class="col-md-2">
+<table width="100%">
+	<tr>
+		<td>
 			${lesson?.masterLang?.lingo}<br/>
 			<div style="color:gray;">${lesson?.masterLang?.dialect}</div>
-		</div>
-		<g:render template="filterButtons" />
-		<div class="col-md" style="text-align:right; padding-right:10px;">
+		</td>
+		<td style="text-align:right;">
 			<g:message code="lessonCreatedBy.label" default="Lesson created by" />:<br/>
 			<div style="color:gray;">${lesson?.user?.account?.firstName} ${lesson?.user?.account?.lastName}</div>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-md-6"></div>
-		<div class="col-md-6" style="text-align:right;">
+		</td>
+		
+	</tr>
+	<tr>
+		<td></td>
+		<td>
 			<g:if test="${ratingClassArray && sec?.loggedInUserInfo(field: 'username') != lesson?.user?.username}">
 				<div class="rating">
 					<span class="${ratingClassArray[0]}" id=ratingStar1 onclick="ratingClick(5, ${lesson?.user?.account?.id})">&#9734;</span>
@@ -46,52 +43,31 @@
 					<span class="${ratingClassArray[4]}" id=ratingStar5 onclick="ratingClick(1, ${lesson?.user?.account?.id})">&#9734;</span>
 				</div>
 			</g:if>
-		</div>
-	</div>
-	
-	<div class="jumbotron" style="font-size:16px; line-height:1.42857;">
+		</td>
+	</tr>
+</table>
+
+<div class="jumbotron" style="font-size:16px; line-height:1.42857; padding:15px;">
 	<g:if test="${sec?.loggedInUserInfo(field: 'username') != lesson?.user?.username &&
 		session.credits <= 0 && !viewedLesson}">
 		<g:render template="unlockLessons"/>
 	</g:if>
 	<g:else>
-		<div class="row">
-			<div class="col-sm-6" style="color:gray;">
-				<g:message code="level.label" default="Level" />: 
-				<g:message code="category.${lesson?.category?.toLowerCase()}.label" default="${lesson?.category}" />
-			</div>
-			<div class="col-sm-6" style="text-align:right; color:gray;">
-				<g:if test="${!lesson?.informal}">
-					<g:set var="formal" value="true" />
-				</g:if>
-				<g:else>
-					<g:set var="formal" value="${null}" />
-				</g:else>
-				<div style="white-space:nowrap;">
-					<g:message code="formal.label" default="Formal" />:
-					<g:radio name="formalRadio" value="Formal"
-						checked="${formal}" disabled="true" />
-				</div>
-				<div style="white-space:nowrap;">
-					<g:message code="informal.label" default="Informal/Slang" />:
-					<g:radio name="informalRadio" value="Informal/Slang"
-						checked="${lesson?.informal}" disabled="true" />
-				</div>
-			</div>
-		</div>
-
-		<h1 style="text-align:center;">
+		
+		<h2 style="text-align:center; margin-top:0px;">
 			<g:if test="${lesson?.audioPath}">
-				<a href="${application.contextPath}/${lesson?.audioPath}/${lesson?.id}.mp3" style="text-decoration: none;">
-					${lesson?.wordPhrase} </a>
+				<ul class="graphic">
+				  <li><a href="${application.contextPath}/${lesson?.audioPath}/${lesson?.id}.mp3" class="sm2_link">
+					${lesson?.wordPhrase} </a></li>
+				 </ul>
 			</g:if>
 			<g:else>
-				${lesson?.wordPhrase} 
+				${lesson?.wordPhrase}
 			</g:else>
-		</h1>
+		</h2>
 		
 		<g:if test="${lesson.imagePath}">
-			<img class="img-responsive center-block" src="${application.contextPath}/${lesson.imagePath}/${lesson.imageName}" />
+			<img id="lessonImg" class="img-responsive center-block" src="${application.contextPath}/${lesson.imagePath}/${lessonImage}" />
 		</g:if>	
 		<dl>
 			<dd>
@@ -114,7 +90,7 @@
 						 (${session.usersDialect})</g:if>:
 				</g:else>
 				<g:textField name="translation" value="${viewedLesson?.translation}" maxlength="190"
-					onblur="saveTranslation(${viewedLesson.id}, this.value)" onkeyup="unlockNextArrow()"/>
+					onblur="saveTranslation(${viewedLesson?.id}, this.value)" onkeyup="unlockNextArrow()"/>
 			</p>
 		</g:if>
 		</g:else>
@@ -148,11 +124,34 @@
 			</div>
 		</div>
 	</g:if>
+	
+	<sec:ifAnyGranted roles="ROLE_ADMIN">
+		<g:form controller="lesson" action="reviewLessons" class="form-inline">
+			<g:hiddenField name="mediaReview" value="${mediaReview}" />
+			<g:hiddenField name="id" value="${lesson?.id}" />
+		  <div class="checkbox">
+		    <label>
+		   	 	<g:checkBox name="mediaApproved" value="${lesson.mediaApproved}" />
+		   	 	Approve Media
+		    </label>
+		  </div>
+		  <div class="checkbox">
+		    <label>
+		    	<g:checkBox name="lessonApproved" value="${lesson.lessonApproved}" />
+		    	Approve Lesson
+		    </label>
+		  </div>
+		  <g:actionSubmit class="btn btn-default" value="Submit" action="reviewLessons"/>
+		</g:form>
+	</sec:ifAnyGranted>
 
 	<g:if test="${filteredLessonByAuthorList && filteredLessonByAuthorList?.size()>0 }">
-	<div id="pagination">
-		<g:render template="lessonPagination"/>
-	</div>
+		<div id="pagination">
+			<g:render template="lessonPagination"/>
+		</div>
+		<div style="text-align:center;">
+			<g:render template="filterButtons" />
+		</div>
 	</g:if>
 
 </g:if>

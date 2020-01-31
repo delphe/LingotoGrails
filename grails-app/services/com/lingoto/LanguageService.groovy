@@ -1,5 +1,8 @@
 package com.lingoto
 
+import org.codehaus.groovy.grails.web.servlet.mvc.GrailsWebRequest
+import org.springframework.web.servlet.support.RequestContextUtils
+import org.codehaus.groovy.grails.web.util.WebUtils
 
 class LanguageService {
 	
@@ -55,5 +58,27 @@ class LanguageService {
 		}else{
 			return false
 		}
+	}
+	
+	def fetchLingoFromSystemLocale(){
+		GrailsWebRequest webUtils = WebUtils.retrieveGrailsWebRequest()
+		def request = webUtils.getCurrentRequest()
+		def locale = RequestContextUtils.getLocale(request)
+		def isoSize = locale.language.size()
+		def lingo
+		//TODO: fix MasterLang to include country
+		if(isoSize == 2){
+			//TODO: find by country also
+			lingo = MasterLang.findByIso2(locale?.language)
+		}
+		if(isoSize == 3){
+			//TODO: find by country also
+			lingo = MasterLang.findByIso3(locale?.language)
+		}
+		if(!lingo){
+			//create new MasterLang
+		}
+		
+		return lingo
 	}
 }

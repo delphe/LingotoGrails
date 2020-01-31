@@ -10,25 +10,20 @@ class Lesson {
 	String category
 	String additionalInfo
 	boolean informal
-	Integer ageRestriction
+	Integer ageRestriction = 12
 	boolean lessonApproved
-	//if the lesson is approved it will be copied to the master user's lesson plan. Admins can search for lesson's that have not yet been approved to see what can be used for the master lesson plans.
 	boolean mediaApproved
-	//if a lesson is edited and media overwritten, the mediaApproved flag will be cleared out.
+	//if a lesson is edited and media overwritten, the mediaApproved flag will need to be cleared out.
 	boolean needsReview
-	//needs review will be used when the lesson is translated by a student. An admin will review the media, to see if it is okay to use and delete it if it's no good. 
-	//Deleting the media will remove the lesson from the translator's lesson plan. If media is in a shared path and mediaApproved flag is set to true, the lesson will show up in the translator's lesson plan.
 	String originalImageName
 	String imagePath
-	String imageExt
-	String imageName
 	String originalAudioName
 	String audioPath
-	String audioName
-	String videoName
+	String originalVideoName
+	String videoPath
 	Integer sortOrder
-	boolean active
-	//if a student translates a lesson, the media will be reviewed and copied to a shared media path and flagged as "needsReview".
+	boolean active = true
+	Date dateCreated
 
     static constraints = {
 		user(nullable:false, maxSize:50)
@@ -44,18 +39,17 @@ class Lesson {
 		needsReview(nullable:true)
 		originalImageName(nullable:true)
 		imagePath(nullable:true)
-		imageExt(nullable:true, maxSize:5)
-		imageName(nullable:true)
-		audioPath(nullable:true)
 		originalAudioName(nullable:true)
-		audioName(nullable:true)
-		videoName(nullable:true)
+		audioPath(nullable:true)
+		originalVideoName(nullable:true)
+		videoPath(nullable:true)
 		sortOrder(nullable:true)
 		active(nullable:true)
     }
 	
 	static mapping = {
 		sort "sortOrder"
+		id generator:'sequence', params:[sequence:'seq_lesson_id']
 	}
 	
 	void setWordPhrase(String wordPhrase) {

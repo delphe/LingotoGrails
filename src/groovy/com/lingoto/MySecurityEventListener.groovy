@@ -17,6 +17,7 @@ class SuccessfulAuthenticationEventListener implements ApplicationListener<Authe
 
 public class SetLoginSession{
 	public static onLogin(user){
+		def grailsApplication = new Account().domainClass.grailsApplication
 		def session = RequestContextHolder.currentRequestAttributes().getSession()
 		def currentUser = User.findByUsername(user.username)
 		Locale usersISO2locale
@@ -37,7 +38,7 @@ public class SetLoginSession{
 			session.locale = usersISO3locale
 		}
 		if(primaryLang.iso3 && primaryLang.localeExt){
-			usersISO3localeAndExt = new Locale("${primaryLang.iso3}_${primaryLang.localeExt}")
+			usersISO3localeAndExt = new Locale("${primaryLang.iso3}", "${primaryLang.localeExt}")
 			session.locale = usersISO3localeAndExt
 		}
 		if(primaryLang.iso2){
@@ -45,7 +46,7 @@ public class SetLoginSession{
 			session.locale = usersISO2locale
 		}
 		if(primaryLang.iso2 && primaryLang.localeExt){
-			usersISO2localeAndExt = new Locale("${primaryLang.iso2}_${primaryLang.localeExt}")
+			usersISO2localeAndExt = new Locale("${primaryLang.iso2}", "${primaryLang.localeExt}")
 			session.locale = usersISO2localeAndExt
 		}
 
@@ -54,23 +55,18 @@ public class SetLoginSession{
 					//in translatedMessage controller, pre-fill form with words already translated and put ones not yet translated at the top of the page.
 			
 			//if the site has already been translated into the users language,
-			//remove the "translate this site" link and assign the sesson.locale to the locale used by Message table
+			//remove the "translate this site" link
 			if(Message.findByLocale(usersISO2locale)){
 				siteTranslationNeeded = false
-				session.locale = usersISO2locale
 			}
 			if(siteTranslationNeeded && Message.findByLocale(usersISO2localeAndExt)){
 				siteTranslationNeeded = false
-				session.locale = usersISO2localeAndExt
 			}
 			if(siteTranslationNeeded && Message.findByLocale(usersISO3locale)){
 				siteTranslationNeeded = false
-				session.locale = usersISO3locale
-
 			}
 			if(siteTranslationNeeded && Message.findByLocale(usersISO3localeAndExt)){
 				siteTranslationNeeded = false
-				session.locale = usersISO3localeAndExt
 			}
 		}else{
 			//if the locale has not been identified for the users selected language,
@@ -78,6 +74,11 @@ public class SetLoginSession{
 			GrailsWebRequest webUtils = WebUtils.retrieveGrailsWebRequest()
 			def request = webUtils.getCurrentRequest()
 			session.locale = RequestContextUtils.getLocale(request)
+		}
+
+		//if the language is not English and the version is a SNAPSHOT (beta version), allow site translation
+		if(session.locale?.language != "en" && grailsApplication.metadata.getApplicationVersion().contains("SNAPSHOT")){
+			siteTranslationNeeded = true
 		}
 		if(siteTranslationNeeded){
 			//Find out how many credits the user can earn to display. Messages available to translate minus the messages already translated.

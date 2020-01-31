@@ -7,19 +7,21 @@
            	<span class="icon-bar"></span>
 		</button>
 
-		<a class="navbar-brand" style="padding: 5px;" href="${createLink(uri: '/')}">
-			<img src="${resource(dir:'images',file:'DTlogo.png')}" border="0" height="40"/>
+		<a class="navbar-brand" style="padding: 5px; color:#1F3E73" href="${createLink(uri: '/')}">
+			<img src="${resource(dir:'images',file:'DTlogo.png')}" border="0" height="40"/><g:if test="${grailsApplication.metadata.getApplicationVersion().contains("SNAPSHOT")}">-beta</g:if>
 		</a>
 	</div>
 
 	<div class="collapse navbar-collapse" role="navigation" id="navbar-ex1-collapse">
 		<form action='/lingoto/j_spring_security_check' method='POST' id='loginForm' autocomplete='off' class="navbar-form navbar-right">
 			<sec:ifLoggedIn>
-				<div class="form-group fieldcontain text-left">
-					<div class="col-md-12">
-						<g:message code="hello.label" default="Hello" /> <g:link controller="user" action="edit">${session.firstName}</g:link>
+				<sec:ifNotGranted roles="ROLE_GUESTUSER">
+					<div class="form-group fieldcontain text-left">
+						<div class="col-md-12">
+							<g:message code="hello.label" default="Hello" /> <g:link controller="user" action="edit">${session.firstName}</g:link>
+						</div>
 					</div>
-				</div>
+				</sec:ifNotGranted>
 				<g:if test="${session.credits >= 0}">
 					<div class="form-group fieldcontain text-left">
 						<div class="col-md-12">
@@ -33,11 +35,25 @@
 						</div>
 					</div>
 				</g:if>
-				<div class="form-group fieldcontain text-left">
-					<div class="col-md-12">
-						<g:link controller="logout" action="index"> <g:message code="logout.label" default="Logout" /></g:link> 
+				<sec:ifNotGranted roles="ROLE_GUESTUSER">
+					<div class="form-group fieldcontain text-left">
+						<div class="col-md-12">
+							<g:link controller="logout" action="index"> <g:message code="logout.label" default="Logout" /></g:link> 
+						</div>
 					</div>
-				</div>
+				</sec:ifNotGranted>
+				<sec:ifAnyGranted roles="ROLE_GUESTUSER">
+					<div class="form-group fieldcontain text-left">
+						<div class="col-md-12">
+							<g:link controller="login" action="login"> <g:message code="login.label" default="login" /></g:link> 
+						</div>
+					</div>
+					<div class="form-group fieldcontain text-left">
+						<div class="col-md-12">
+							<g:link controller="user" action="edit"><g:message code="createAccount.label" default="Create Account" /></g:link>
+						</div>
+					</div>
+				</sec:ifAnyGranted>
 				
 			</sec:ifLoggedIn> 
 			<sec:ifNotLoggedIn>
@@ -55,12 +71,12 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<div class="col-md-4">
+						<div class="col-md-12">
 							<input class="btn btn-default" type='submit' id="submit" value='login'/>
 						</div>
 					</div>
 					<div class="form-group fieldcontain text-left">
-						<div class="col-md-4">
+						<div class="col-md-12">
 							<g:link controller="user" action="register"> <g:message code="createAccount.label" default="Create Account" /></g:link>
 						</div>
 					</div>

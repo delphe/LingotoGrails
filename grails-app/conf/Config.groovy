@@ -11,6 +11,8 @@
 //    grails.config.locations << "file:" + System.properties["${appName}.config.location"]
 // }
 
+grails.app.context = "/"
+
 grails.project.groupId = appName // change this to alter the default package name and Maven publishing destination
 grails.mime.file.extensions = true // enables the parsing of file extensions from URLs into the request format
 grails.mime.use.accept.header = false
@@ -66,7 +68,8 @@ environments {
     }
     production {
         grails.logging.jul.usebridge = false
-        grails.serverURL = "/"
+        grails.serverURL = "http://lingoto-beta.com"
+		grails.dbconsole.enabled = true
     }
 }
 
@@ -164,12 +167,20 @@ security {
 		'/user/saveAccount/**':    ['IS_AUTHENTICATED_ANONYMOUSLY'],
 		'/masterLang/getAllLanguages/**':    ['IS_AUTHENTICATED_ANONYMOUSLY'],
 		'/masterLang/getAllDialects/**':    ['IS_AUTHENTICATED_ANONYMOUSLY'],
-		'/masterLang/**':    ['ROLE_ADMIN'],
 		'/login/**':    ['IS_AUTHENTICATED_ANONYMOUSLY'],
 		'/logout/**':    ['IS_AUTHENTICATED_ANONYMOUSLY'],
+		'/lesson/index/**':    ['IS_AUTHENTICATED_ANONYMOUSLY'],
+		'/lesson/showLessons/**':    ['IS_AUTHENTICATED_ANONYMOUSLY'],
+		'/lesson/showFilteredLessons/**':    ['IS_AUTHENTICATED_ANONYMOUSLY'],
+		'/lesson/lessonPlan/**':    ['IS_AUTHENTICATED_ANONYMOUSLY'],
+		'/lesson/learn/**':    ['IS_AUTHENTICATED_ANONYMOUSLY'],
+		'/media/**':    ['IS_AUTHENTICATED_ANONYMOUSLY'],
+		'/masterLang/**':    ['ROLE_ADMIN'],
+		 '/localMapper/**':    ['ROLE_ADMIN'],
 		'/dbconsole/**':    ['ROLE_ADMIN'],
 		'/siteinfo/**':    ['ROLE_ADMIN'],
 		'/_DemoPage/**':    ['ROLE_ADMIN'],
+		'/lesson/reviewLessons/**':    ['ROLE_ADMIN'],
 		'/**':    ['IS_AUTHENTICATED_REMEMBERED']
 	 ]
 

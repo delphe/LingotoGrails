@@ -3,16 +3,50 @@ package com.lingoto
 import java.text.DecimalFormat
 import grails.converters.JSON
 import org.springframework.web.servlet.support.RequestContextUtils
+import org.springframework.security.core.context.SecurityContextHolder
 
 class LessonController {
 
 	def springSecurityService
+	def rememberMeServices
 	def lessonService
 	def languageService
+	def userService
+
+	def beforeInterceptor = [action: this.&auth]
+
+	/**
+	 * The following actions may not have a currentUser and will use a guest user account:
+	 * index, showLessons, showFilteredLessons, lessonPlan, learn
+	 * @return
+	 */
+	private auth() {
+		//This method only gets called after spring security authenticates the user or the action 'IS_AUTHENTICATED_ANONYMOUSLY'
+		def currentUser = springSecurityService.currentUser
+		if(!currentUser){
+			def guestUserRole = Role.findByAuthority('ROLE_GUESTUSER')
+			def userid = User.last().id + 1
+			def randomNum = Math.abs(new Random().nextInt()) % 100000 + 1
+			def locale = RequestContextUtils.getLocale(request)
+			def language = MasterLang.findByLingoIlike("English") //TODO: 01- pull language from languageService.fetchLingoFromSystemLocale
+//			def language = languageService.fetchLingoFromSystemLocale()
+			def guestUser = new User(username: "${userid}@${randomNum}.com", enabled: true,
+				password: "secret").save(flush: true, failOnError:true)
+			def guestAccount = new Account(firstName: "Guest", user:guestUser,
+				lastName: "User", primaryLanguage: language, age:17, adultContent:false, credits:5).save()
+			UserRole.create guestUser, guestUserRole, true
+	
+			springSecurityService.reauthenticate guestUser.username //automatically login new user
+			SetLoginSession.onLogin(guestUser)
+			def authentication = SecurityContextHolder.context.authentication
+			rememberMeServices.loginSuccess(request, response, authentication)
+		}
+	}
 	
 	
 	def index = {
-		//TODO: 21- Fix filter buttons & when nothing is found use the following in gsp: <g:message code="nothingFound.message" default="Nothing found." />
+		//TODO: 05- fix gsp page to keep rating stars on the right in mobile view
+		//TODO: Phase 2- Add fix filter buttons & when nothing is found use the following in gsp: <g:message code="nothingFound.message" default="Nothing found." />
 		def lessonMap = [:]
 		//def user = springSecurityService.currentUser
 		def c = MasterLang.createCriteria()
@@ -22,7 +56,7 @@ class LessonController {
 			maxResults(10000) //prevents too large of a result set
 		}
 		//TODO: Phase 2- add search feature
-		//TODO: Phase 2- only show languages with languageRef but allow search to pull up all languages
+		//TODO: Phase 2- only show languages with languageRef (known languages) but allow search to pull up all languages
 		languagesWithLessons.each{
 			def langKey = "${it.lingo} ${it.dialect}"
 			
@@ -109,24 +143,26 @@ class LessonController {
 		def user = springSecurityService.currentUser
 		//TODO: 46- find out why 4 queries occur every time springSecurityService.currentUser is called (maybe MySecurityEventListener) and reduce the query.
 		
-		def beginnerLessonList = "Beginner"
-		def intermediateLessonList
-		def advancedLessonList
-		def lessons = lessonService.lessonList(params, beginnerLessonList, user)
+		//TODO: 09- fix gsp for mobile view - sorting lessons does not work. Idea - make arrows bigger on mobile device and sort on click.
+		
+		def beginnerLessons = "Beginner"
+		def intermediateLessons
+		def advancedLessons
+		def lessons = lessonService.lessonList(params, beginnerLessons, user)
 		if (lessons.size() == 0){
-			beginnerLessonList = null
-			intermediateLessonList = "Intermediate"
-			lessons = lessonService.lessonList(params, intermediateLessonList, user)
+			beginnerLessons = null
+			intermediateLessons = "Intermediate"
+			lessons = lessonService.lessonList(params, intermediateLessons, user)
 		}
 		if (lessons.size() == 0){
-			advancedLessonList = "Advanced"
-			lessons = lessonService.lessonList(params, advancedLessonList, user)
+			advancedLessons = "Advanced"
+			lessons = lessonService.lessonList(params, advancedLessons, user)
 		}
 		
 		[lessons:lessons,
-			beginnerLessonList:beginnerLessonList,
-			intermediateLessonList:intermediateLessonList,
-			advancedLessonList:advancedLessonList,
+			beginnerLessons:beginnerLessons,
+			intermediateLessons:intermediateLessons,
+			advancedLessons:advancedLessons,
 			user:user]
 	}
 	
@@ -172,20 +208,23 @@ class LessonController {
 	def teach = {
 		//TODO: 26- add label in gsp for informal/formal radio buttons and test
 		def user = springSecurityService.currentUser
+		if (user.authorities.any { it.authority == "ROLE_GUESTUSER" }) {
+			redirect(controller:'user', action: 'edit')
+		}
 		//TODO: 44- just pass in lingo & dialect instead of entire user object.
-		//TODO: 16- change images of camera/audio icons to use green/blue color scheme
+		//TODO: 08- fix bug on mobile devices - show edit icon at all times for user to click on instead of on-hover.
 		return [user:user]
 	}
 	
 	def saveLesson = {
 		def user = springSecurityService.currentUser
 		def lesson = new Lesson(params)
-		lesson = lessonService.saveLesson(lesson, user, request, null, null)
-		
-		if(lesson.hasErrors()){
-			render(view: "teach", model: [lesson:lesson, user:user])
+		def updatedLesson = lessonService.saveLesson(lesson, user, request, null, null)
+		if(updatedLesson.hasErrors()){
+			render(view: "teach", model: [lesson:updatedLesson, user:user])
 			return
 		}
+		userService.addCredits(user.account, lessonService.totalCreditsForLesson(lesson, user))
 		//TODO: 32- save default entries to Account table and pass in to next new lesson
 		//TODO: 43- pass in lingo & dialect instead of entire user object.
 		redirect(action: 'learn', id: lesson.id)
@@ -202,12 +241,13 @@ class LessonController {
 			flash.error = g.message(code: "error.lesson.missing", default: "Sorry, that lesson can no longer be found.")
 			redirect(action: "teach")
 		}else {
-			return [lesson: lesson]
+			String imgFileExt = lesson.originalImageName?.substring(lesson.originalImageName?.lastIndexOf( "." ) + 1 ).toLowerCase()
+			return [lesson: lesson, lessonImage: "${lesson.id}.${imgFileExt}"]
 		}
 	}
 	
 	def update = {
-		boolean deleteOldLesson = false
+		boolean removeOldLesson = false
 		def currentUser = springSecurityService.currentUser
 		def currentLesson = Lesson.get(params.id)
 		if (!currentLesson || currentUser.username != currentLesson.user.username) {
@@ -217,20 +257,24 @@ class LessonController {
 			redirect(action: "teach")
 			return
 		}
+		String imgFileExt = currentLesson.originalImageName?.substring(currentLesson.originalImageName?.lastIndexOf( "." ) + 1 ).toLowerCase()
 		if (params.version) {
 			def version = params.version.toLong()
 			if (currentLesson.version > version) {
 				currentLesson.errors.rejectValue('version','error.lesson.already.edited')
-				render(view: "edit", model: [lesson:currentLesson])
+				render(view: "edit", model: [lesson:currentLesson, lessonImage: "${currentLesson.id}.${imgFileExt}"])
 				return
 			}
 		}
+		
+		def previousLesson = new Lesson()
+		previousLesson.properties = currentLesson.properties
+		previousLesson.id = currentLesson.id
 
 		currentLesson.properties = params 
 		def lesson = currentLesson
 		def lessonLang = currentLesson.masterLang
 		def updateLang
-		
 
 		if(lessonLang.lingo != params.lingo || 
 			(lessonLang.dialect ?: "") != (params.dialect ?: "") ){
@@ -247,40 +291,44 @@ class LessonController {
 		def uploadedImage = request.getFile('imgPayload')
 		def uploadedAudio = request.getFile('audio')
 		
-		if(uploadedImage?.originalFilename || uploadedAudio?.originalFilename){
-			//create new lesson with new audio or image and delete old lesson
-			//TODO: 1- editing an existing lesson is broken. Fix it.
+		def accountsOfViewedLesson = lessonService.accountsOfViewedLesson(lesson)
+		
+		if(accountsOfViewedLesson && 
+			((uploadedImage?.originalFilename && currentLesson.originalImageName) || 
+			(uploadedAudio?.originalFilename && currentLesson.originalAudioName))  ){
+			//Lesson has been viewed and media has been changed. Create new lesson with new audio and/or image and delete old lesson.
+			//This will allow translated lessons to still be used.
 			lesson = new Lesson(params)
-			deleteOldLesson = true
+			removeOldLesson = true
 		}
 		
-		lesson = lessonService.saveLesson(lesson, currentUser, request, lesson.masterLang, currentLesson)
-		if (!lesson.hasErrors()) {
-			languageService.deleteUnusedLang(lessonLang)
-			if (deleteOldLesson){
-				def lessonDeletedOrInactive = lessonService.deactivateOrDeleteLesson(currentLesson, currentUser)
-			}
-			redirect(action: "learn", id: lesson.id)
-		}else {
+		lesson = lessonService.saveLesson(lesson, currentUser, request, lesson.masterLang, previousLesson)
+		if (lesson.hasErrors()) {
 			if (updateLang?.langObj){
 				languageService.deleteUnusedLang(updateLang?.langObj)
 			}
-			
-			//TODO: 51- move to service
-			//removing duplicate error messages
-			def savedErrors = lesson.errors.allErrors.findAll{ true }
-			savedErrors = savedErrors?.unique(new ErrorComparator())
-			lesson.clearErrors()
-			savedErrors.each {
-					lesson.errors.addError(it)
+			render(view: "edit", model: [lesson:lesson, lessonImage: "${currentLesson.id}.${imgFileExt}"])
+			return
+		}else {
+			if(uploadedImage.originalFilename && uploadedImage.originalFilename.substring(uploadedImage.originalFilename.lastIndexOf( "." ) + 1 ) !=
+				previousLesson?.originalImageName.substring(previousLesson?.originalImageName.lastIndexOf( "." ) + 1 )){
+				//File extensions of previously saved image and current image don't match.
+				//Deleting original because it won't be overwritten.
+				lessonService.deleteImgFromUsersLesson(previousLesson)
 			}
-			render(view: "edit", model: [lesson:lesson])
+			languageService.deleteUnusedLang(lessonLang)
+			if (removeOldLesson){
+				lessonService.moveMediaToNewLesson(currentLesson, lesson, uploadedImage, uploadedAudio)
+				lessonService.deactivateOrDeleteLesson(currentLesson)
+			}
+			redirect(action: "learn", id: lesson.id)
 			return
 		}
 
 	}
 
 	def delete = {
+		//TODO: 07 - When deleting a lesson, remove it from saved lesson plans & advance to the next lesson created by the user or back to teach if none exists
 		def lessonInstance = Lesson.get(params.id)
 		def currentUser = springSecurityService.currentUser
 		if(!lessonInstance.active || currentUser.username != lessonInstance.user.username){
@@ -290,18 +338,11 @@ class LessonController {
 			return
 		}
 		
-		def lessonDeletedOrInactive = lessonService.deactivateOrDeleteLesson(lessonInstance, currentUser)
+		def lessonDeletedOrInactive = lessonService.deactivateOrDeleteLesson(lessonInstance)
 
 		if (lessonDeletedOrInactive){
-			//If lesson has been viewed by another user, add credit to user who viewed deleted/inactive lesson to make up for deletion.
-			def viewedLessons = ViewedLesson.executeQuery('select l.user from ViewedLesson l where l.lesson =?',[lessonInstance])
-			//TODO: 39- performance test if 1000+ users viewed the lesson.
-			viewedLessons.each{
-				it.account.credits = it.account.credits +1
-				it.account.save()
-			}
-			
 			//TODO: Phase 2- Add animation to show lesson going into the trash can.
+			userService.removeCredits(currentUser.account, lessonService.totalCreditsForLesson(lessonInstance, currentUser))
 			redirect(action: "teach")
 		}else{
 			//An error occurred deleting
@@ -317,15 +358,16 @@ class LessonController {
 		
 		if(params.auth){
 			//TODO: Phase 2- This is hacky. Allow the user to send a filtered list of params through the shared link instead of hard coding the params
-			if(!params.beginner){
+			if(!params.beginner && !params.intermediate && !params.advanced && !params.formal && !params.informal){
 				params.beginner = true
 				params.intermediate = true
 				params.advanced = true
 				params.formal = true
 				params.informal = true
 			}
-			
+			//TODO: 04- fix bug - If author has lessons with two or more different languages, return only one language (the one passed in)
 			params.filteredLessonByAuthorList = lessonService.filteredLessonsByUser(params, User.get(params.auth?.toInteger() ), currentUser)
+
 			if(params.filteredLessonByAuthorList.size()>0){
 				params.id = params.filteredLessonByAuthorList[0]
 			}
@@ -397,7 +439,7 @@ class LessonController {
 			
 			//if user already has previous quizzes save in their account, clear them out.
 			currentUser?.account?.shuffledLessons = null
-			currentUser.account.save()
+			currentUser?.account?.save()
 			
 		}
 		redirect(action: "learn", params: [id: params.id?.toLong(),
@@ -408,9 +450,31 @@ class LessonController {
 					informal:params.informal])
 	}
 	
-	def learn = {
-		//TODO: prevent rating stars from changing size and preventing selection when screen is small		
+	def reviewLessons = {
+		if(params.id && (params.mediaApproved || params.lessonApproved)){
+			def lesson = Lesson.get(params.id.toLong())
+			lesson.mediaApproved = params.mediaApproved ? true : false
+			lesson.lessonApproved = params.lessonApproved ? true : false
+			lesson.save(flush:true)
+		}
 		def currentUser = springSecurityService.currentUser
+		def allLessonsNotReviewed = lessonService.allLessonsNotReviewed(currentUser, params.mediaReview)
+		
+		if(allLessonsNotReviewed.size()==0){
+			flash.message = "All lessons have been reviewed. Nothing New."
+			redirect(action: "index")
+			return
+		}else{
+			params.id = allLessonsNotReviewed[0].toLong()
+		}
+		redirect(action: "learn", params: [id: params.id, mediaReview:params.mediaReview])
+	}
+	
+	def learn = {
+		//TODO: 06- allow students who logged in and want to translate a lesson to upload audio.
+				//See lingoto\Documents\FlowCharts\audio-upload.jpg (need to convert idea to a flow chart)
+		def currentUser = springSecurityService.currentUser
+		//TODO: if no currentUser and session.credits <= 0, redirect to Create Account or display "Create Account" Link
 		def filteredLessonByAuthorList = currentUser?.account?.filteredLessonsByAuthor?.split(",")
 		if (params.offset && filteredLessonByAuthorList && filteredLessonByAuthorList?.size()>0){
 			//if a pagination number is selected and the array of lessons is provided,
@@ -426,40 +490,61 @@ class LessonController {
 			flash.error = g.message(code: "error.lesson.missing", default: "Sorry, that lesson can no longer be found.")
 			return
 		}
-		
+
 		session.usersLanguage = currentUser.account.primaryLanguage.lingo
 		session.usersDialect = currentUser.account.primaryLanguage.dialect
+		
 		def lessonsByCategory
 		def viewedLesson
 		def vLcount = 0
 		def ratingClassArray = ['ratingGold','ratingGold','ratingGold','ratingGold','ratingGold']
         
-		
+		boolean lessonNotInList = true
 		if (filteredLessonByAuthorList && filteredLessonByAuthorList?.size()>0 && params.id){
 			//if a user selects the previous or next arrow
 			//set the offset value so pagination number will be highlighted
 			filteredLessonByAuthorList.eachWithIndex { obj, i ->
 				if(obj == params.id){
 					params.offset = i
+					lessonNotInList = false
+				}
+			}
+		}
+		if(!params.beginner && !params.intermediate && !params.advanced && !params.formal && !params.informal){
+			//If no filter params passed in, use all of them.
+			params.beginner = true
+			params.intermediate = true
+			params.advanced = true
+			params.formal = true
+			params.informal = true
+		}
+		if (lessonNotInList){
+			//If lesson number was passed in and does not match what's in the list, reset the filteredLessonByAuthorList
+			filteredLessonByAuthorList = lessonService.filteredLessonsByUser(params, lesson.user, currentUser)
+			filteredLessonByAuthorList.eachWithIndex { obj, i ->
+				if(obj == params.id?.toInteger()){
+					params.offset = i //adding offset value so correct pagination number will be highlighted
 				}
 			}
 		}
 		
 		def rating
 		//if user did not create the lesson...
-		if(currentUser.username != lesson.user.username){
-			if (currentUser.account.age < lesson.ageRestriction){
+		if(currentUser?.username != lesson.user.username){
+			if (userService.getAgeOfUser(currentUser?.account) < (lesson.ageRestriction ?: 12)){
 				//Only allow user to see lessons suitable for their age.
 				redirect(action: "index")
 				return
 			}
-			def previouslyRated = Rate.findByRatedByAccountID(currentUser.account.id)
+			def previouslyRated = Rate.findByRatedByAccountID(currentUser?.account?.id)
+			//TODO: test if a user rated multiple lessons. This rating system may need some work.
+			
 			//if user already rated, show what they rated it
 			//otherwise, get the average rating for the user account they are looking at
 			if(previouslyRated){
 				rating = previouslyRated.rating
 			}else{
-				rating = lessonService.rating(lesson.user.account.id).round()
+				rating = lessonService.rating(lesson.user.account.id)?.round() ?: 0
 			}
 			
 			//Creating array of css class labels to use for rating stars.
@@ -471,25 +556,29 @@ class LessonController {
 			}
 			
 			viewedLesson = ViewedLesson.findByUserAndLesson(currentUser, lesson)
-			if (!viewedLesson && currentUser.account.credits > 0){
+			if (!viewedLesson && currentUser?.account?.credits > 0){
 				//TODO: Phase 2- Create "Purchase Credits" page. When the user has 0 credits provide link to "Purchase credits."
 				
 				//if lesson has not been viewed and the user still has credits left, 
 				//save as a viewed lesson and reduce amount of credits left
-				currentUser.account.credits = currentUser.account.credits -1
-				currentUser.account.save()
-				viewedLesson = new ViewedLesson(user:currentUser, lesson:lesson).save()
+				currentUser?.account?.credits = currentUser?.account?.credits -1
+				currentUser?.account?.save(flush:true)
+				viewedLesson = new ViewedLesson(user:currentUser, lesson:lesson).save(flush:true)
 			}
 			//getting count of viewedLessons that can be used for the quiz.
 			//only displaying take quiz link if 4 or more are found.
 			//TODO: 42- fix query to pull just the number instead of an array
-			def vLcountArray = ViewedLesson.executeQuery('select count(v) from ViewedLesson v WHERE v.passedQuiz = false AND v.lesson.imagePath IS NOT NULL AND v.lesson.masterLang.id = ?',[lesson.masterLang.id])
+			def vLcountArray = ViewedLesson.executeQuery('select count(v) from ViewedLesson v WHERE v.passedQuiz = false AND v.lesson.imagePath IS NOT NULL AND v.lesson.masterLang.id = ? AND v.user = ?',
+				[lesson.masterLang.id, currentUser])
 			vLcount = vLcountArray ? vLcountArray[0] : 0 // if array contains a value, use it, otherwise use 0
 		}
 		lessonsByCategory = Lesson.findAllByCategoryAndUser(lesson.category, lesson.user)
-		session.credits = currentUser.account.credits
 		
+		session.credits = currentUser?.account?.credits ?: 0
+		
+		String imgFileExt = lesson.originalImageName?.substring(lesson.originalImageName?.lastIndexOf( "." ) + 1 ).toLowerCase()
 		return [lesson:lesson, ratingClassArray:ratingClassArray, 
+				lessonImage: "${lesson.id}.${imgFileExt}",
 				vLcount:vLcount,
 				viewedLesson:viewedLesson, 
 				filteredLessonByAuthorList:filteredLessonByAuthorList,
@@ -514,13 +603,13 @@ class LessonController {
 		if (!translatedLesson.translation && params.translation && params.translation?.trim() != ""){
 			//only add credits to account if the lesson hasn't already been translated.
 			currentUser.account.credits = currentUser.account.credits +1
-			currentUser.account.save()
+			currentUser.account.save(flush:true)
 			session.credits = currentUser.account.credits
 		}
 		
 		if (translatedLesson.translation != params.translation && params.translation && params.translation?.trim() != ""){
 			translatedLesson.translation = params.translation
-			translatedLesson.save()
+			translatedLesson.save(flush:true)
 		}
 		
 		def viewedLesson = JSON.parse(params.viewedLessonId)
@@ -549,7 +638,7 @@ class LessonController {
 		if(params.markedIncorrect != "true"){
 			def currentUser = springSecurityService.currentUser
 			def c = ViewedLesson.createCriteria()
-			//TODO: change query to use get to pull one instead of a list.
+			//TODO: 42- change query to pull one instead of a list.
 			def viewedLessonArray = c {
 				lesson{
 					eq('id', lessonId)
@@ -559,7 +648,7 @@ class LessonController {
 				}
 			}
 			def viewedLesson = viewedLessonArray[0] //should only have one item in the array
-			viewedLesson.passedQuiz = true
+			viewedLesson?.passedQuiz = true
 			viewedLesson.save(flush:true)
 		}
 		
@@ -575,12 +664,12 @@ class LessonController {
 		
 		if(shuffledLessonsArray.size() == 1){
 			
-			def query = 'select v.lesson.id from ViewedLesson v WHERE v.lesson.imagePath IS NOT NULL AND v.lesson.masterLang.id = ?'
-			def quizableLessons = ViewedLesson.executeQuery(query + ' AND v.passedQuiz = false',[params.langId.toLong()])
+			def query = 'select v.lesson.id from ViewedLesson v WHERE v.lesson.imagePath IS NOT NULL AND v.lesson.masterLang.id = ? AND v.user = ?'
+			def quizableLessons = ViewedLesson.executeQuery(query + ' AND v.passedQuiz = false',[params.langId.toLong(), currentUser])
 			
 			//last quiz has been viewed. Display percentage correct.
 			//find allViewedLessons that the user both passed and failed, used for percentage.
-			def allViewedLessons = ViewedLesson.executeQuery(query,[params.langId.toLong()])
+			def allViewedLessons = ViewedLesson.executeQuery(query,[params.langId.toLong(), currentUser])
 			def percentform = new DecimalFormat("###.##%")
 			percentage = percentform.format(
 				(allViewedLessons.size() - quizableLessons.size()) / allViewedLessons.size() )
@@ -607,24 +696,23 @@ class LessonController {
 	}
 	
 	def quiz = {
-		//TODO: if lesson has audio, allow playing of audio in the quiz
 		def lessonId
 		def randomLessonList = []
 		def lesson
 		def percentCorrect = null
-		def currentUser = params.currentUser ?: springSecurityService.currentUser
+		def currentUser = springSecurityService.currentUser
 		def shuffledLessons = params.shuffledLessons ?: currentUser?.account?.shuffledLessons
 		def shuffledLessonList = params.shuffledLessonList ?: currentUser?.account?.shuffledLessons?.split(",")
 		
 		//an ID is passed through when the creator of the lesson wants to see what it looks like as a quiz.
 		if(params.id){
 			//get the lesson used in the quiz
-			lesson = Lesson.executeQuery('select new map(a.id as id, a.wordPhrase as wordPhrase, a.category as category, a.imagePath as imagePath, a.imageExt as imageExt) from Lesson a where a.id = ?',[params.id.toLong()])
+			lesson = Lesson.executeQuery('select new map(a.id as id, a.wordPhrase as wordPhrase, a.category as category, a.imagePath as imagePath) from Lesson a where a.id = ?',[params.id.toLong()])
 			randomLessonList = lessonService.randomLessonSample(params.id, currentUser, lesson)
 		}else if(params.langId){
 			//Generating quiz of viewed lessons based on the language of the lesson.
-			def query = 'select v.lesson.id from ViewedLesson v WHERE v.lesson.imagePath IS NOT NULL AND v.lesson.masterLang.id = ?'
-			def quizableLessons = ViewedLesson.executeQuery(query + ' AND v.passedQuiz = false',[params.langId.toLong()])
+			def query = 'select v.lesson.id from ViewedLesson v WHERE v.lesson.imagePath IS NOT NULL AND v.lesson.masterLang.id = ? AND v.user = ?'
+			def quizableLessons = ViewedLesson.executeQuery(query + ' AND v.passedQuiz = false',[params.langId.toLong(), currentUser])
 			if (quizableLessons && !params.lessonId && !shuffledLessons){
 				//beginning of quiz or refresh occurred.
 				shuffledLessonList = []
@@ -639,9 +727,9 @@ class LessonController {
 				//No quizable lessons found. User must have passed all quiz items.
 				//Return to last viewed lesson, passing in filter parameters and display 100%.
 				def viewedLessonQuery = """select new map(v.lesson.id as id, v.lesson.category as category, v.lesson.informal as informal) from ViewedLesson v
-						WHERE v.lesson.imagePath IS NOT NULL AND v.lesson.masterLang.id = ?"""
+						WHERE v.lesson.imagePath IS NOT NULL AND v.lesson.masterLang.id = ? AND v.user = ?"""
 				
-				def viewedLesson = ViewedLesson.executeQuery(viewedLessonQuery,[params.langId.toLong()])
+				def viewedLesson = ViewedLesson.executeQuery(viewedLessonQuery,[params.langId.toLong(), currentUser])
 				flash.message = "100%"
 				currentUser?.account?.shuffledLessons = null
 				currentUser?.account.save()
@@ -656,14 +744,15 @@ class LessonController {
 
 			//find lesson from the first item in the shuffled list, it will be used as the quiz item.
 			lessonId = shuffledLessonList[0]
-			lesson = Lesson.executeQuery('select new map(a.id as id, a.wordPhrase as wordPhrase, a.imagePath as imagePath, a.imageExt as imageExt) from Lesson a where a.id = ?',[lessonId?.toLong()])
+			lesson = Lesson.executeQuery('select new map(l.id as id, l.wordPhrase as wordPhrase, l.imagePath as imagePath, l.originalImageName as originalImageName, l.audioPath as audioPath) from Lesson l where l.id = ?',
+							[lessonId?.toLong()])
 			
 			//getting random lesson list, used to find 3 random images that are not the lesson being quizzed against.
 			def quizableLessonsToRandomize
 			if (quizableLessons.size() < 4){
 				//if the user passed all but 3 or less quizzes, 
 				//find quizableLessons that the user either passed or failed to prevent pulling from a null object.
-				quizableLessonsToRandomize = ViewedLesson.executeQuery(query,[params.langId.toLong()])
+				quizableLessonsToRandomize = ViewedLesson.executeQuery(query,[params.langId.toLong(), currentUser])
 			}else{
 				quizableLessonsToRandomize = quizableLessons
 			}
@@ -682,16 +771,16 @@ class LessonController {
 			//get 3 random images from the filtered lesson list except the lesson image
 			
 			Collections.shuffle(randomLessonList)
+			String lessonImageQuery = 'select new map(l.id as id, l.imagePath as imagePath, l.originalImageName as originalImageName) from Lesson l where l.id = ?'
+			def randomLesson1 = Lesson.executeQuery(lessonImageQuery,[randomLessonList[0]?.toLong()])
+			def randomLesson2 = Lesson.executeQuery(lessonImageQuery,[randomLessonList[1]?.toLong()])
+			def randomLesson3 = Lesson.executeQuery(lessonImageQuery,[randomLessonList[2]?.toLong()])
 			
-			def randomLesson1 = Lesson.executeQuery('select new map(a.id as id, a.imagePath as imagePath, a.imageExt as imageExt) from Lesson a where a.id = ?',[randomLessonList[0]?.toLong()])
-			def randomLesson2 = Lesson.executeQuery('select new map(a.id as id, a.imagePath as imagePath, a.imageExt as imageExt) from Lesson a where a.id = ?',[randomLessonList[1]?.toLong()])
-			def randomLesson3 = Lesson.executeQuery('select new map(a.id as id, a.imagePath as imagePath, a.imageExt as imageExt) from Lesson a where a.id = ?',[randomLessonList[2]?.toLong()])
+			randomImageNames << lessonService.getSmallImgName(randomLesson1[0])
+			randomImageNames << lessonService.getSmallImgName(randomLesson2[0])
+			randomImageNames << lessonService.getSmallImgName(randomLesson3[0])
 			
-			randomImageNames << lessonService.getImgName(randomLesson1[0])
-			randomImageNames << lessonService.getImgName(randomLesson2[0])
-			randomImageNames << lessonService.getImgName(randomLesson3[0])
-			
-			def imageNames = [randomImageNames[0],randomImageNames[1],randomImageNames[2],lessonService.getImgName(lesson[0])]
+			def imageNames = [randomImageNames[0],randomImageNames[1],randomImageNames[2],lessonService.getSmallImgName(lesson[0])]
 			Collections.shuffle(imageNames) //randomize array of 4 images to display, including the lesson image
 			if(params.percentage){
 				flash.message = params.percentage

@@ -11,7 +11,7 @@
 			<g:message code="level.label" default="Level" />: 
 		</label>
 		<div class="col-md-3 fieldcontain ${hasErrors(bean: lesson, field: 'category', 'error')} required">
-			<g:categoryDropDown name="category" class="form-control"
+			<msg:categoryDropDown name="category" class="form-control"
 			value="${lesson?.category}" noSelection="${['':'']}"/>
 		</div>
 	</div>
@@ -20,31 +20,40 @@
 		<g:if test="${!lesson?.informal}">
 			<g:set var="formal" value="true" />
 		</g:if>
-		<label class="col-md-2 control-label">
+		<label class="col-md-3 control-label">
 	    	<g:message code="formal.label" default="Formal" />:
 		<g:radio name="informal" value="false"
 			checked="${formal}" />
 		</label>
-		<label class="col-md-2 control-label">
+		<label class="col-md-3 control-label">
 			<g:message code="informal.label" default="Informal/Slang" />:
 		<g:radio name="informal" value="true"
 			checked="${lesson?.informal}" />
 		</label>
 	</div>
-	
+	</br>
 	<div class="form-group">
-		<label class="col-md-2 control-label">
-		</label>
-		<div class="col-md-3 fieldcontain ${hasErrors(bean: lesson, field: 'imgPayload', 'error')}">
-	        <img src="${resource(dir:'images',file:'cameraIcon.gif')}" alt="" border="0" align="center"/>
+		
+		<div class="col-md-4 fieldcontain ${hasErrors(bean: lesson, field: 'imgPayload', 'error')}">
+	        <img id="cameraIconImg" src="${resource(dir:'images',file:'cameraIcon.png')}" alt="" border="0" align="center"/>
 			<input type="file" id="imgPayload" name="imgPayload" class="form-control" accept="image/*"/>
+			<div id="uploadingImg" style="display:none;">
+			    <img src="${createLinkTo(dir:'images',file:'uploading.gif')}" />
+			</div>
 		</div>
-		<label class="col-md-2 control-label">
-		</label>
-		<div class="col-md-3 fieldcontain ${hasErrors(bean: lesson, field: 'originalAudioName', 'error')}">
-			<img src="${resource(dir:'images',file:'micIcon.gif')}" alt="" border="0" align="center"/>
-			<input type="file" name="audio" value="test.jpg" class="form-control" accept="audio/*"/>
+		<div class="col-md-4 fieldcontain ${hasErrors(bean: lesson, field: 'originalAudioName', 'error')}">
+			<img id="micIconImg" src="${resource(dir:'images',file:'micIcon.png')}" alt="" border="0" align="center"/>
+			<input type="file" id="audio" name="audio" class="form-control" accept="audio/*"/>
+			<div id="uploadingAudio" style="display:none;">
+			    <img src="${createLinkTo(dir:'images',file:'uploading.gif')}" />
+			</div>
 		</div>
+		<%--
+		<div class="col-md-4 fieldcontain ${hasErrors(bean: lesson, field: 'originalVideoName', 'error')}">
+			<img src="${resource(dir:'images',file:'camcorderIcon.png')}" alt="" border="0" align="center"/>
+			<input type="file" name="video" class="form-control" accept="video/*"/>
+		</div>
+		--%>
 	</div>
 	
 	<div class="form-group">

@@ -2,6 +2,8 @@ package lingoto
 
 class MessageTagLib {
 	
+	static namespace = "msg"
+	
 	def categoryDropDown = {attrs ->
 		def msgBeginner = g.message(code: "category.beginner.label", default: "Beginner")
 		def msgIntermediate = g.message(code: "category.intermediate.label", default: "Intermediate")

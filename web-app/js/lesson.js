@@ -1,5 +1,10 @@
 $(document).ready(function(){
 	
+	$('#teach,#update').click(function() {
+    	$("#uploadingImg").fadeIn('fast');
+    	$("#uploadingAudio").fadeIn('fast');
+    });
+	
 	$("#beginner,#intermediate,#advanced,#formal,#informal" ).change(function() {
 		submitForm()
 	});
@@ -10,18 +15,31 @@ $(document).ready(function(){
 		editImg.style.visibility = "hidden";
 	});
 	
+	$("#cameraIconImg").click(function(){
+		$( "#imgPayload" ).focus();
+		$( "#imgPayload" ).click();
+	});
+	$("#micIconImg").click(function(){
+		$( "#audio" ).focus();
+		$( "#audio" ).click();
+	});
+	
 	$("#editableAudioDiv").hover(function(){
 		editAudio.style.visibility = "visible";
 	}, function() {
 		editAudio.style.visibility = "hidden";
 	});
 	
+	var src = $("#lessonImg").attr("src");
+	var d = new Date();
+	$("#lessonImg").attr("src", src+"?"+d.getTime());
+
 });
 
 function submitForm(){
     var querystring = $("#rightNavFilterForm").serialize();
     $.ajax({
-        url : "/lingoto/lesson/filterLessons",
+        url : "/lesson/filterLessons",
         data : querystring,
         success : function(data) {
             $('#pagination').html(data);
@@ -32,6 +50,7 @@ function submitForm(){
 function showImgInput() {
 	editableImgDiv.style.visibility = "hidden"
 	editableImgDiv.style.height = "0px";
+	editableImgDiv.style.width = "0px";
 	$("#imgInputDiv" ).show();
 	imgInputDiv.style.visibility = "visible";
 	imgInputDiv.style.height = "90px";
@@ -40,6 +59,7 @@ function showImgInput() {
 function showAudioInput() {
 	editableAudioDiv.style.visibility = "hidden"
 	editableAudioDiv.style.height = "0px";
+	editableAudioDiv.style.width = "0px";
 	$("#audioInputDiv" ).show();
 	audioInputDiv.style.visibility = "visible";
 	audioInputDiv.style.height = "90px";
@@ -54,7 +74,7 @@ function ratingClick(star, accountId) {
 		
 	$.ajax({
 		type:'POST',
-	    url: "/lingoto/lesson/saveRating/",
+	    url: "/lesson/saveRating/",
 	    dataType: 'json',
 	    data: {rating:JSON.stringify(star), accountId:JSON.stringify(accountId)},
 	    complete: function() {
@@ -108,7 +128,7 @@ function ratingClick(star, accountId) {
 function saveTranslation(viewedLessonId, translation){
 	$.ajax({
 		type:'POST',
-	    url: "/lingoto/lesson/saveTranslation/",
+	    url: "/lesson/saveTranslation/",
 	    dataType: 'json',
 	    data: {translation:translation, viewedLessonId:viewedLessonId},
 	    complete: function() {
@@ -139,7 +159,7 @@ function quizChecker(imageName, lessonId, elemId){
 		
 		$.ajax({
 			type:'POST',
-		    url: "/lingoto/lesson/grader/",
+		    url: "/lesson/grader/",
 		    dataType: 'json',
 		    data: {lessonId:lessonId, markedIncorrect:markedIncorrect, langId:langId},
 		    complete: function() {location.reload();}

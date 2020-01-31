@@ -1,6 +1,9 @@
 <html>
     <head>
-        <title>lingoto</title>
+        <title><g:if test="${grailsApplication.metadata.getApplicationVersion().contains("SNAPSHOT")}"><g:message code="default.title.label" default="lingoto"/>-beta</g:if>
+        	<g:else>
+        		<g:message code="default.title.label" default="lingoto"/>
+        	</g:else></title>
         <meta name="layout" content="main" />
     </head>
     <body>

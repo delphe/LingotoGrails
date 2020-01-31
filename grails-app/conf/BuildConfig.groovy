@@ -4,12 +4,18 @@ grails.project.test.class.dir = "target/test-classes"
 grails.project.test.reports.dir = "target/test-reports"
 grails.project.target.level = 1.6
 grails.project.source.level = 1.6
+grails.project.work.dir = "target/work"
 //grails.project.war.file = "target/${appName}-${appVersion}.war"
 
 // uncomment (and adjust settings) to fork the JVM to isolate classpaths
 //grails.project.fork = [
 //   run: [maxMemory:1024, minMemory:64, debug:false, maxPerm:256]
 //]
+
+// Remove the media folder before the war is bundled
+grails.war.resources = { stagingDir ->
+  delete(includeEmptyDirs: true) { fileset dir: "${stagingDir}/media/" }
+}
 
 grails.project.dependency.resolution = {
     // inherit Grails' default dependencies
@@ -45,6 +51,7 @@ grails.project.dependency.resolution = {
          //runtime 'mysql:mysql-connector-java:5.1.5'
 		runtime "postgresql:postgresql:9.1-901.jdbc4"
 		//compile "org.grails:grails-webflow:$grailsVersion"
+		//TODO: 25- add jave here and remove from lib directory
     }
 
     plugins {
@@ -53,13 +60,17 @@ grails.project.dependency.resolution = {
         runtime ":resources:1.2"
 		compile ":jquery-ui:1.10.3"
 		
+//		runtime ":resources:1.1.6"
+//		runtime ":cached-resources:1.0"
+//		runtime ":cache-headers:1.1.5"
+		
 		if (Environment.current == Environment.DEVELOPMENT) {
 			compile "org.grails.plugins:console:1.5.7"
 		}
 
         // Uncomment these (or add new ones) to enable additional resources capabilities
         //runtime ":zipped-resources:1.0"
-        //runtime ":cached-resources:1.0"
+//        runtime ":cached-resources:1.1"
         //runtime ":yui-minify-resources:0.1.5"
 		//TODO: 45- use resource to minimize js & look at other resource capabilities
 
@@ -70,9 +81,7 @@ grails.project.dependency.resolution = {
         compile ':cache:1.0.1'
 		compile ":spring-security-core:1.2.7.3"
 		compile ":burning-image:0.5.1"
-		compile ":modalbox:0.4"
-		compile ":remote-pagination:0.4.8"
-		compile ":sound-manager:0.4" //http://grails.org/plugin/sound-manager
+		//compile ":remote-pagination:0.4.8" plugin only contained RemotePaginationTagLib, which was modified and brought file into project
 		compile ':kickstart-with-bootstrap:0.9.9'
 		compile ':lesscss-resources:1.3.0.3'
 		//runtime ':twitter-bootstrap:3.1.1.3'

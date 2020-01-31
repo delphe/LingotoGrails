@@ -1,10 +1,15 @@
 <html>
     <head>
-        <title>lingoto - <g:message code="teach.label" default="Teach" /></title>
+        <title><g:if test="${grailsApplication.metadata.getApplicationVersion().contains("SNAPSHOT")}"><g:message code="default.title.label" default="lingoto"/>-beta</g:if>
+        	<g:else>
+        		<g:message code="default.title.label" default="lingoto"/>
+        	</g:else> - <g:message code="teach.label" default="Teach" /></title>
         <meta name="layout" content="main"/>
         <r:require modules="languageJS"/>
         <r:require modules="lesson"/>
-        <sm:inlinePlayer/>
+        <link rel="stylesheet" href="${createLinkTo(dir: 'css', file: 'inlineplayer.css')}"/>
+		<script type="text/javascript" src="/js/soundmanager2.js"></script>
+		<script type="text/javascript" src="/js/inlineplayer.js"></script>
     </head>
     <body>
 		<g:uploadForm action="update" name="editForm">
@@ -23,11 +28,7 @@
 	        	<g:textField name="dialect" id="dialect_textField" value="${lesson?.masterLang?.dialect}"/>
         	</h3>
         
-	        <g:hasErrors bean="${lesson}">
-	            <div class="errors">
-	               <g:renderErrors bean="${lesson}" as="list" />
-	            </div>
-	        </g:hasErrors>
+        	<errors:errorList bean="${lesson}"/>
 	        
 	        <g:if test="${flash.message}">
 		        <div class="error">
@@ -53,7 +54,7 @@
 						<g:message code="level.label" default="Level" />: 
 					</label>
 					<div class="col-md-3 fieldcontain ${hasErrors(bean: lesson, field: 'category', 'error')} required">
-						<g:categoryDropDown name="category" class="form-control"
+						<msg:categoryDropDown name="category" class="form-control"
 						value="${lesson?.category}" noSelection="${['':'']}"/>
 					</div>
 				</div>
@@ -62,55 +63,67 @@
 					<g:if test="${!lesson?.informal}">
 						<g:set var="formal" value="true" />
 					</g:if>
-					<label class="col-md-2 control-label">
+					<label class="col-md-3 control-label">
 				    	<g:message code="formal.label" default="Formal" />:
 					<g:radio name="informal" value="false"
 						checked="${formal}" />
 					</label>
-					<label class="col-md-2 control-label">
+					<label class="col-md-3 control-label">
 						<g:message code="informal.label" default="Informal/Slang" />:
 					<g:radio name="informal" value="true"
 						checked="${lesson?.informal}" />
 					</label>
 				</div>	
-				
+				</br>
 				<div class="form-group">
-				<g:if test="${lesson.imagePath && lesson.imageName}">
-			        <div id="editableImgDiv" style="height:90px; width:150px;">
+				<g:if test="${lesson.imagePath && lessonImage}">
+			        <div class="col-md-4" id="editableImgDiv" style="height:90px; width:150px;">
 			        	<img class="absoluteImg" 
-			        		src="${application.contextPath}/${lesson.imagePath}/${lesson.imageName}" height="90"/>
+			        		src="${application.contextPath}/${lesson.imagePath}/${lessonImage}" height="90"/>
 						<a href="#" class="editImg" id="editImg" onclick="showImgInput()">
-							<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span><span class="sr-only">Edit</span>
+							<span class="glyphicon glyphicon-pencil" style="color:#1F3E73" aria-hidden="true"></span><span class="sr-only">Edit</span>
 						</a>
 					</div>
-					<div class="hideit" id="imgInputDiv">
-						<div class="col-md-3 fieldcontain ${hasErrors(bean: lesson, field: 'imgPayload', 'error')}">
-					        <img src="${resource(dir:'images',file:'cameraIcon.gif')}" alt="" border="0" align="center"/>
+					<div class="col-md-4 hideit" id="imgInputDiv">
+						<div class="fieldcontain ${hasErrors(bean: lesson, field: 'imgPayload', 'error')}">
+					        <img id="cameraIconImg" src="${resource(dir:'images',file:'cameraIcon.png')}" alt="" border="0" align="center"/>
 							<input type="file" id="imgPayload" name="imgPayload" class="form-control" accept="image/*"/>
+							<div id="uploadingImg" style="display:none;">
+							    <img src="${createLinkTo(dir:'images',file:'uploading.gif')}" />
+							</div>
 						</div>
 					</div>
 				</g:if>	
 				<g:if test="${lesson?.audioPath && lesson?.originalAudioName}">
-					<div id="editableAudioDiv" style="height:40px; width:150px;">
+					<div class="col-md-4" id="editableAudioDiv" style="height:40px; width:150px;">
 						<a href="#" class="editImg" id="editAudio" onclick="showAudioInput()">
-							<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span><span class="sr-only">Edit</span>
+							<span class="glyphicon glyphicon-pencil" style="color:#1F3E73" aria-hidden="true"></span><span class="sr-only">Edit</span>
 						</a>
-						<a href="${application.contextPath}/${lesson?.audioPath}/${lesson?.id}.mp3" 
+						<ul class="graphic">
+						  <li><a href="${application.contextPath}/${lesson?.audioPath}/${lesson?.id}.mp3" 
 							style="position:relative; left:40px" >
-							${lesson?.originalAudioName} </a>
+							${lesson?.originalAudioName} </a></li>
+						 </ul>
+						
 					</div>
-					<div class="hideit" id="audioInputDiv">
-						<div class="col-md-3 fieldcontain ${hasErrors(bean: lesson, field: 'originalAudioName', 'error')}">
-							<img src="${resource(dir:'images',file:'micIcon.gif')}" alt="" border="0" align="center"/>
-							<input type="file" name="audio" value="test.jpg" class="form-control" accept="audio/*"/>
+					<div class="col-md-4 hideit" id="audioInputDiv">
+						<div class="fieldcontain ${hasErrors(bean: lesson, field: 'originalAudioName', 'error')}">
+							<img id="micIconImg" src="${resource(dir:'images',file:'micIcon.png')}" alt="" border="0" align="center"/>
+							<input type="file" id="audio" name="audio" class="form-control" accept="audio/*"/>
+							<div id="uploadingAudio" style="display:none;">
+							    <img src="${createLinkTo(dir:'images',file:'uploading.gif')}" />
+							</div>
 						</div>
 					</div>
 			       </g:if>
 			       <g:else>
-			       	<div id="audioInputDiv">
-						<div class="col-md-3 fieldcontain ${hasErrors(bean: lesson, field: 'originalAudioName', 'error')}">
-							<img src="${resource(dir:'images',file:'micIcon.gif')}" alt="" border="0" align="center"/>
-							<input type="file" name="audio" value="test.jpg" class="form-control" accept="audio/*"/>
+			       	<div class="col-md-4" id="audioInputDiv">
+						<div class="fieldcontain ${hasErrors(bean: lesson, field: 'originalAudioName', 'error')}">
+							<img src="${resource(dir:'images',file:'micIcon.png')}" alt="" border="0" align="center"/>
+							<input type="file" name="audio" class="form-control" accept="audio/*"/>
+							<div id="uploadingAudio" style="display:none;">
+							    <img src="${createLinkTo(dir:'images',file:'uploading.gif')}" />
+							</div>
 						</div>
 					</div>
 			       </g:else>

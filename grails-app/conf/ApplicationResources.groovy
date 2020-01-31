@@ -26,5 +26,8 @@ modules = {
 		dependsOn 'jqueryui'
 		resource url:'js/language.js'
 	}
+	zxcvbn{
+		resource url:'js/zxcvbn.js'
+	}	
 
 }

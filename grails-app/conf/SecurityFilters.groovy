@@ -6,7 +6,7 @@ class SecurityFilters {
 			before = { 
 				//Set the language of the application to the session.locale (user's locale)
 				
-				//TODO: review this to see if there is a better way. Passing in the params.lang should set the following:
+				//TODO: 49- review this to see if there is a better way. Passing in the params.lang should set the following:
 					//session.'org.springframework.web.servlet.i18n.SessionLocaleResolver.LOCALE
 					//may be able to use SessionLocaleResolver.LOCALE instead of session.locale
 				if( params.lang == null && session.locale) {

@@ -27,6 +27,7 @@ class User {
 		table "users"
 		password column: '`password`'
 		account lazy: false
+		id generator:'sequence', params:[sequence:'seq_user_id']
 	}
 
 	Set<Role> getAuthorities() {

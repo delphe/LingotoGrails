@@ -40,7 +40,7 @@ environments {
 //			url = "jdbc:mysql://localhost:3306/lingotodb_dev?useUnicode=yes&characterEncoding=UTF-8"
 			
 			logSql=true
-			dbCreate = "create-drop" // one of 'create', 'create-drop', 'update', 'validate', ''
+			dbCreate = "update" // one of 'create', 'create-drop', 'update', 'validate', ''
         }
     }
     test {
@@ -51,9 +51,9 @@ environments {
     }
     production {
         dataSource {
-            dbCreate = "create-drop"
+            dbCreate = "update"
             //url = "jdbc:h2:prodDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
-	url = "jdbc:h2:mem:devDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
+//	url = "jdbc:h2:mem:devDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
             //pooled = true
             //properties {
                //maxActive = -1
@@ -65,6 +65,13 @@ environments {
                //testOnReturn=true
                //validationQuery="SELECT 1"
             //}
+
+			driverClassName = "org.postgresql.Driver"
+			dialect = "org.hibernate.dialect.PostgreSQLDialect"
+//			jndiName = "java:comp/env/jdbc/lingotobetadb"
+			username = "lingotobetadb"
+			password = "L!ng02-b3t8db"
+			url="jdbc:postgresql://localhost:5432/lingotobetadb"
         }
     }
 }

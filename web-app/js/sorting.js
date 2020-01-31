@@ -26,7 +26,7 @@ function loadSortableListFunctions() {
 		
 		$.ajax({
 			type:'POST',
-		    url: "/lingoto/lesson/saveSortedList/",
+		    url: "/lesson/saveSortedList/",
 		    dataType: 'json',
 		    data: {sortedList:JSON.stringify(sortedList),
 		    	initialList:JSON.stringify(initialList)},

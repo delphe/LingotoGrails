@@ -1,7 +1,11 @@
 <html>
     <head>
-        <title>lingoto - <g:message code="teach.label" default="Teach" /></title>
+        <title><g:if test="${grailsApplication.metadata.getApplicationVersion().contains("SNAPSHOT")}"><g:message code="default.title.label" default="lingoto"/>-beta</g:if>
+        	<g:else>
+        		<g:message code="default.title.label" default="lingoto"/>
+        	</g:else> - <g:message code="teach.label" default="Teach" /></title>
         <meta name="layout" content="main"/>
+        <r:require modules="lesson"/>
     </head>
     <body>
 
@@ -12,12 +16,8 @@
         	</g:if> 
         </h3>
         	
+        <errors:errorList bean="${lesson}"/>
         
-        <g:hasErrors bean="${lesson}">
-            <div class="errors">
-               <g:renderErrors bean="${lesson}" as="list" />
-            </div>
-        </g:hasErrors>
         <g:if test="${flash.error}">
 		  <div class="errors" >${flash.error}</div>
 		</g:if>

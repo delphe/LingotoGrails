@@ -29,6 +29,9 @@
 							<span class="ratingGold">&#9733;</span>
 						</g:each>
 					</g:if>
+					<g:else>
+						<span class="ratingGray">&#9734;</span>
+					</g:else>
 				</div>
 				
 			</g:each>

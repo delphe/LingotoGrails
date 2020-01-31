@@ -1,6 +1,6 @@
-body { padding-top: 50px !important;}
+html, body { padding-top: 26px !important; height: 100%;}
 @media screen and (max-width: 980px) {
-    body { padding-top: 0px !important; }
+    html, body { padding-top: 0px !important; }
 }
 .previousButton{
 	background: transparent url(../images/Left_arrow_blue.jpg) 50% no-repeat;
@@ -40,11 +40,6 @@ body { padding-top: 50px !important;}
 	border-radius: 25px;
 	font-size: 24px;
 }
-@media (min-width: 600px){
-  .imgLink {
-    font-size: 3vmin;
-  }
-
 
 .imgLink:hover{
 	border:3px solid black;
@@ -238,14 +233,87 @@ div.errors li {
     margin-right:-4px;
 }
 
-.footer{
-	position: absolute;
-	width: 100%;
-	margin-top: 0px;
-	padding-top: 5px;
-	padding-bottom: 5px;
+#wrap {
+  min-height: 100%;
 }
-footer{bottom:0;}
+
+#main {
+  padding-bottom:45px; /* this needs to be bigger than footer height*/
+}
+
+.footer {
+  position: relative;
+  margin-top: -40px; /* negative value of footer height */
+  height: 40px;
+  clear:both;
+  padding-top:8px;
+} 
+
+/* footer{bottom:0;}
 @media screen and (max-width: 980px) {
     footer { bottom:inherit;}
+} */
+
+/* 
+* {
+	box-sizing: border-box;
 }
+
+
+input {
+    display: block;
+    margin: .5em auto 0em;
+    padding: 0.5em 1em 0.5em 0.7em;
+    width: 100%;
+    border: none;
+    background: rgba(0,0,0,0.05);
+    color: rgba(0,0,0,0.8);
+    font-size: 2em;
+    line-height: 0;
+		transition: all .5s linear;
+}
+
+input:hover, input:focus {
+	outline: 0;
+	transition: all .5s linear;
+	box-shadow: inset 0px 0px 10px #ccc;
+}
+
+meter {
+    Reset the default appearance
+	-webkit-appearance: none;
+	   -moz-appearance: none;
+	        appearance: none;
+            
+	margin: 0 auto 1em;
+	width: 171px;
+	height: .5em;
+    
+    Applicable only to Firefox
+	background: none;
+	background-color: rgba(0,0,0,0.1);
+}
+
+meter::-webkit-meter-bar {
+	background: none;
+	background-color: rgba(0,0,0,0.1);
+}
+
+meter[value="1"]::-webkit-meter-optimum-value { background: red; }
+meter[value="2"]::-webkit-meter-optimum-value { background: yellow; }
+meter[value="3"]::-webkit-meter-optimum-value { background: orange; }
+meter[value="4"]::-webkit-meter-optimum-value { background: green; }
+
+meter[value="1"]::-moz-meter-bar { background: red; }
+meter[value="2"]::-moz-meter-bar { background: yellow; }
+meter[value="3"]::-moz-meter-bar { background: orange; }
+meter[value="4"]::-moz-meter-bar { background: green; }
+
+.feedback {
+	color: #9ab;
+	font-size: 90%;
+	padding: 0 .25em;
+	font-family: Courgette, cursive;
+	margin-top: 1em;
+}
+ */

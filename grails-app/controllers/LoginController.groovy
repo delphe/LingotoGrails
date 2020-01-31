@@ -35,23 +35,48 @@ class LoginController {
 			redirect action: 'auth', params: params
 		}
 	}
+	
+	def login = {
+		def config = SpringSecurityUtils.securityConfig
+		
+				boolean resetPassword = false
+				if(params.showResetPasswordModal){
+					resetPassword = true
+		//			render resetPassword as JSON
+				}
+				String view = 'auth'
+				String postUrl = "${request.contextPath}${config.apf.filterProcessesUrl}"
+				render view: view, model: [postUrl: postUrl,
+										   rememberMeParameter: config.rememberMe.parameter,
+										   resetPassword:resetPassword]
+	}
 
 	/**
 	 * Show the login page.
 	 */
 	def auth = {
-		//TODO: 18- add "forgot password" & password reset option
 		def config = SpringSecurityUtils.securityConfig
 
 		if (springSecurityService.isLoggedIn()) {
 			redirect uri: config.successHandler.defaultTargetUrl
 			return
 		}
-
+		
+		//TODO: 12- fix "reset password" link & use the following message codes in the email:
+//				hello.label
+//				resetEmail.message
+//				resetEmailLink.message
+//				disregardResetEmail.message
+		boolean resetPassword = false
+		if(params.showResetPasswordModal){
+			resetPassword = true
+//			render resetPassword as JSON
+		}
 		String view = 'auth'
 		String postUrl = "${request.contextPath}${config.apf.filterProcessesUrl}"
 		render view: view, model: [postUrl: postUrl,
-		                           rememberMeParameter: config.rememberMe.parameter]
+		                           rememberMeParameter: config.rememberMe.parameter, 
+								   resetPassword:resetPassword]
 	}
 
 	/**
@@ -132,4 +157,5 @@ class LoginController {
 	def ajaxDenied = {
 		render([error: 'access denied'] as JSON)
 	}
+
 }

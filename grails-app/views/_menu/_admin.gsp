@@ -4,24 +4,30 @@
 		<g:message code="default.admin.label"/><b class="caret"></b>
 	</a>
 	<ul class="dropdown-menu">
-		<li class="">
-			<a tabindex="-1" href="#"><b>Technical Admin</b></a>
-		</li>
-		<g:if env="development">
+		<li><a href="${createLink(uri: '/siteinfo/stats')}">
+				<span class="glyphicon glyphicon-stats"></span>
+				Report
+			</a></li>
+		<li><g:link controller="lesson" action="reviewLessons" params="[mediaReview: 'true']">
+			<span class="glyphicon glyphicon-film"></span>
+			Review New Media</g:link></li>
+		<li><g:link controller="lesson" action="reviewLessons">
+			<span class="glyphicon glyphicon-eye-open"></span>
+			Review New Lessons</g:link></li>
 		<li class="">
 			<a href="${createLink(uri: '/dbconsole')}">
-				<i class="icon-dashboard"></i>
+				<span class="glyphicon glyphicon-tower"></span>
 				<g:message code="default.dbconsole.label"/>
 			</a>
 		</li>
-		</g:if>
 		<li class="">
 			<a href="${createLink(uri: '/siteinfo/systeminfo')}">
 				<i class="icon-info-sign"></i>
 				<g:message code="default.systeminfo.label"/>
 			</a>
 		</li>
-<%--		<li><g:link controller="MasterLang">Master Language Controller</g:link></li>--%>
+		<li><g:link controller="MasterLang" action="list">Master Language Controller</g:link></li>
+		<li><g:link controller="LocaleMapper" action="list">Locale Mapper Controller</g:link></li>
 	</ul>
 </li>
 

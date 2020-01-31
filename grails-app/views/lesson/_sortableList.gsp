@@ -27,7 +27,7 @@
 				</g:each>
 			</ul>
 		</div>
-		<div class="col-xs-4">
+		<div class="col-sm-4">
 			<p id="save-order-buttons">
 				<button id="save-order" name="save-order" class="btn btn-primary" style="width: 78px !important;">
 			    	<span class="glyphicon glyphicon-save" aria-hidden="true"></span><span class="sr-only">Save</span>&nbsp;

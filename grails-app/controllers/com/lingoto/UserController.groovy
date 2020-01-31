@@ -1,5 +1,6 @@
 package com.lingoto
 import org.springframework.web.servlet.support.RequestContextUtils
+import org.springframework.security.core.context.SecurityContextHolder
 
 class UserController {
 	
@@ -7,6 +8,7 @@ class UserController {
 	transient springSecurityService
 	def languageService
 	def translatedMessageService
+	def rememberMeServices
 	
 	def index = {
 		redirect(action: "edit")
@@ -40,13 +42,17 @@ class UserController {
 		def userInstance = springSecurityService.currentUser //prevents user from viewing other accounts
 		def termsOfService = translatedMessageService.termsOfService()
 		//TODO: Phase 2- allow admin user to edit other accounts
+		//TODO: 09- if language is changed, clear out the dialect
 		return [userInstance: userInstance, termsOfService:termsOfService]
 	}
 	
 	def update = { UserRegistrationCommand urc ->
-		
 		def userInstance = springSecurityService.currentUser //prevents user from updating other accounts
 		
+		boolean guestUser = false
+		if (userInstance.authorities.any { it.authority == "ROLE_GUESTUSER" }) {
+			guestUser = true
+		}
 		//TODO: Phase 2- allow admin to update other accounts
 		boolean langUpdatedMsg = false
 		def sysLocale = RequestContextUtils.getLocale(request)
@@ -56,33 +62,42 @@ class UserController {
 			redirect(action: "edit")
 			return
 		}
-		
-		//TODO: 51- move to a service
-		//removing duplicate error messages
-		def savedErrors = urc.errors?.allErrors.findAll{ true }
-		savedErrors = savedErrors?.unique(new ErrorComparator())
-		urc.clearErrors()
-		savedErrors.each {
-				urc.errors.addError(it)
-		}
-		
-		if(!params.updatePassword){
+		def savedErrors = urc.errors.allErrors.findAll{ true }
+		if(!params.updatePassword || guestUser){
 			//User did not check "Update Password". Removing only the password error.
+			
 			def passwordError = savedErrors.findAll{ it.field == "password"}
 			savedErrors.removeAll(passwordError)
 			urc.clearErrors()
 			savedErrors.each {
 					urc.errors.addError(it)
 			}
-			//User is not updating password. So, use the old one.
-			params.password = userInstance.password
+			
+			if(!guestUser){
+				//User is not updating password. So, use the old one.
+				params.password = userInstance.password
+			}
+		}
+		if(!params.updateEmail || guestUser){
+			//User did not check "Update Email". Removing only the username error.
+			def usernameError = savedErrors.findAll{ it.field == "username"}
+			savedErrors.removeAll(usernameError)
+			urc.clearErrors()
+			savedErrors.each {
+					urc.errors.addError(it)
+			}
+			if(!guestUser){
+				//User is not updating username. So, use the old one.
+				params.username = userInstance.username
+				urc.usernameRepeat = userInstance.username
+			}
 		}
 		if (urc.hasErrors()) {
 			render(view: "edit", model: [urc: urc, userInstance:userInstance,
 					termsOfService:translatedMessageService.termsOfService()])
 			return
 		}
-		if (userInstance.password != springSecurityService.encodePassword(params.currentPassword)){
+		if (!guestUser && userInstance.password != springSecurityService.encodePassword(params.currentPassword)){
 			//current password entered in does not match the users password
 			urc.errors.rejectValue( 'currentPassword', 'springSecurity.errors.login.fail')
 			render(view: "edit", model: [urc: urc, userInstance: userInstance,
@@ -140,7 +155,17 @@ class UserController {
 			}
 			
 		}
-		
+		if(!userInstance.hasErrors() && guestUser){
+			//Change guest user to regular user.
+			UserRole.remove userInstance, Role.findByAuthority("ROLE_GUESTUSER")
+			UserRole.create userInstance, Role.findByAuthority("ROLE_USER")
+			//Guest user started out with 5 credits. Add 15 more.
+			account.credits = account.credits + 15
+			refreshSessionLogin = true
+			springSecurityService.reauthenticate userInstance.username
+			def authentication = SecurityContextHolder.context.authentication
+			rememberMeServices.loginSuccess(request, response, authentication)
+		}
 		if (!userInstance.hasErrors() && userInstance.save(flush: true) &&
 			!account.hasErrors() && account.save(flush: true) ) {
 				if(refreshSessionLogin){
@@ -177,24 +202,31 @@ class UserController {
 	}
 	
 	def register = { 
-		//TODO: 19- add a password strength indicator
+		//TODO: 11- add a password strength indicator
+		//TODO: Phase 2- Add a flag drop down list based on language selected using FlagsTagLib & LocalMapper and associate the dialect with the selected flag.
+				//May need to change the flagDropDown method to pull only languages available in Message domain (distinct locale)
+				//The default highlighted flag can being either based on the user's countryCode or one with most population. 
+				//Clicking on the flag will highlight it and fill in the dialect field. - Need to find all countries of the user's language.
+		//TODO: Phase 2- 2- Languages that read left to right & bottom to top are not showing up correctly. This needs to be fixed.
+			//http://wiki.tei-c.org/index.php/Text_Directionality_Draft
+			//https://www.w3.org/TR/2011/WD-css3-writing-modes-20110901/
 		def termsOfService = translatedMessageService.termsOfService()
 		return [ userInstance : params.userInstance, termsOfService:termsOfService ]
 	}
 	
 	def saveAccount = { UserRegistrationCommand urc ->
-		//TODO: 29- use https to protect password info
+		//TODO: Phase 2- use https to protect password info
 		//TODO: 40- prevent passwordRepeat from showing in the logs if an error is logged.
 		
 //		if (!params.register) return
 		if (urc.hasErrors()) {
 			//removing duplicate error messages
-			def savedErrors = urc.errors.allErrors.findAll{ true }
-			savedErrors = savedErrors?.unique(new ErrorComparator())
-			urc.clearErrors()
-			savedErrors.each {
-					urc.errors.addError(it)
-			}
+//			def savedErrors = urc.errors.allErrors.findAll{ true }
+//			savedErrors = savedErrors?.unique(new ErrorComparator())
+//			urc.clearErrors()
+//			savedErrors.each {
+//					urc.errors.addError(it)
+//			}
 			render(view: "register", model: [userInstance: urc, 
 					termsOfService:translatedMessageService.termsOfService()])
 			return
@@ -228,6 +260,8 @@ class UserController {
 				if (user.save()) {
 					UserRole.create user, role
 					springSecurityService.reauthenticate urc.username //automatically login new user
+					def authentication = SecurityContextHolder.context.authentication
+					rememberMeServices.loginSuccess(request, response, authentication)
 					SetLoginSession.onLogin(user)
 					
 					render(view: "register", model: [saved: true, userInstance: urc, 
@@ -247,13 +281,16 @@ class UserController {
 		}
 	}
 	
+	def resetPassword = {}
+	
 }
 
 class UserRegistrationCommand {
-	//TODO: add usernameRepeat and validation rules
 	String updatePassword
+	String updateEmail
 	String currentPassword
 	String username
+	String usernameRepeat
 	String firstName
 	String lastName
 	String password
@@ -278,6 +315,10 @@ class UserRegistrationCommand {
 		passwordRepeat(nullable: false,
 			validator: { passwd2, urc ->
 				return passwd2 == urc.password
+			})
+		usernameRepeat(nullable: false,
+			validator: { usernm2, urc ->
+				return usernm2 == urc.username
 			})
 	}
 	

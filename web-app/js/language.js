@@ -3,7 +3,7 @@ $(document).ready(function(){
 	$.ajax({
 		//Code found at http://www.icodeya.com/2013/03/grails-autocomplete-via-jquery-ui-and.html
         type: "GET",
-        url: "/lingoto/masterLang/getAllLanguages/",
+        url: "/masterLang/getAllLanguages/",
         dataType: "json",
         success : function(response) {
         	/*
@@ -36,7 +36,7 @@ $(document).ready(function(){
     	var lang = $('#language_textField').val();    	
 		$.ajax({
 	        type: "GET",
-	        url: "/lingoto/masterLang/getAllDialects/",
+	        url: "/masterLang/getAllDialects/",
 	        dataType: "json",
 		    data: {lingo:lang},
 	        success : function(response) {

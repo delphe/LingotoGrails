@@ -32,8 +32,8 @@
 		<div class="col-xs-9">
 			<br />
 			<div class="alert alert-warning col-centered">
-				<g:message code="earnCredits.message" args="${[session.creditsForTranslation]}"
-					default="Earn ${session.creditsForTranslation} Credits!" /> <br />
+				<g:message code="earnCredits.message" 
+					default="Earn Credits!" /> <br />
 					&#43;${session.creditsForTranslation}<br />
 				<g:link controller="translatedMessage" action="index">
 					<g:message code="translateThisSite.message"

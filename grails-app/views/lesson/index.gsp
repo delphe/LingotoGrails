@@ -1,25 +1,28 @@
 <html>
 <head>
-	<title>lingoto - <g:message code="langLessonsByAuthor.label" default="Language Lessons by Author" /></title>
+	<title><g:if test="${grailsApplication.metadata.getApplicationVersion().contains("SNAPSHOT")}"><g:message code="default.title.label" default="lingoto"/>-beta</g:if>
+        	<g:else>
+        		<g:message code="default.title.label" default="lingoto"/>
+        	</g:else> - <g:message code="langLessonsByAuthor.label" default="Language Lessons by Author" /></title>
 	<meta name="layout" content="main" />
 	<g:javascript library="lessonList" />
 <%--	<g:javascript library="prototype" />--%>
 </head>
 <body>
 	<g:if test="${flash.message}">
-		<div class="error">
+		<div class="alert alert-danger">
+			<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+			 <span class="sr-only">Error:</span>
 			<g:message code="${flash.message}" />
 		</div>
 	</g:if>
 
 		<h2><g:message code="langLessonsByAuthor.label" default="Language Lessons by Author" /></h2>
-		
+		<%--
 		<div class="container" style="padding:0px">
 		   <g:render template="filterButtons" />
 		</div>
-		
-		<%--
-	
+
 		<g:formRemote name="filterForm" update="lessonAuthors"
 	              url="[action:'showFilteredLessons']">
 	
@@ -90,18 +93,6 @@
 					</div>
 				</div>
 			</div>
-		
-		<%--
-			<modalbox:createLink controller="lesson" action="showLessons" width="400" 
-				params="[lingo:lang.key, dialect:lang.value]" 
-				title="${langLessonsByAuthor}">
-					
-					<dt>${lang.key}</dt>
-					<g:if test="${lang.value != 'null'}">
-						<dl>${lang.value}</dl>
-					</g:if>
-				
-			</modalbox:createLink>--%>
 		</g:each>
 	</g:each>
 </body>

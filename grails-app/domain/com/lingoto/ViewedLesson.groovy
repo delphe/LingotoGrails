@@ -8,6 +8,7 @@ class ViewedLesson {
 	String audioPath
 	String audioName
 	boolean passedQuiz
+	Date dateCreated
 
     static constraints = {
 		user(nullable:false)
