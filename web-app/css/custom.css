@@ -1,0 +1,251 @@
+body { padding-top: 50px !important;}
+@media screen and (max-width: 980px) {
+    body { padding-top: 0px !important; }
+}
+.previousButton{
+	background: transparent url(../images/Left_arrow_blue.jpg) 50% no-repeat;
+	padding: 25px 50px;
+	border: 0;
+	float: right;
+	font-color: #FEFCFF;
+	font-size: 1px;
+	border:1px solid transparent;
+}
+.previousButton:hover{
+	border: 1px solid #ccc;
+}
+.previousButton:active{
+	border:1px solid black;
+}
+
+.nextArrow{
+	color:gray; 
+	font-size:48px;
+	text-align:center;
+}
+
+.nextArrow:hover{
+	color:black;
+}
+
+.largeLink{
+	font-size: 28px;
+}
+
+.imgLink{
+	height: auto;
+	overflow:hidden;
+	float: left;
+	border:3px solid transparent;
+	border-radius: 25px;
+	font-size: 24px;
+}
+@media (min-width: 600px){
+  .imgLink {
+    font-size: 3vmin;
+  }
+
+
+.imgLink:hover{
+	border:3px solid black;
+	cursor:pointer;
+}
+
+.absoluteImg{
+	float: left;
+	position:absolute;
+	padding-left:7px;
+	padding-top:7px;
+	z-index:1;
+}
+.quizValidation{
+	position:absolute;
+	display:none;
+	padding-left:10px;
+	padding-top:10px;
+	z-index:2;
+}
+
+li.sortable-item{
+	cursor: move;
+}
+
+li:first-child img.up-arrow{
+	visibility: hidden;
+}
+
+li:last-child img.down-arrow{
+	visibility: hidden;
+}
+
+hr{ display: block; 
+	height: 1px;
+    border: 0; 
+    border-top: 1px solid #ccc;
+    padding: 0; 
+}
+
+.floatright{
+	float: right;
+}
+
+.floatleft{
+	float: left;
+}
+
+.center{
+	text-align: center;
+}
+
+.hideit{
+/* 	visibility: hidden; 
+	width:0px;
+	height:0px;*/
+	display: none;
+}
+
+.rating {
+  unicode-bidi: bidi-override;
+  direction: rtl;
+}
+.ratingGold {
+	content: "\2605";
+	font-size: 20px;
+	color:gold;
+	unicode-bidi: bidi-override;
+	direction: rtl;
+}
+.ratingGray {
+	content: "\2605";
+	font-size: 20px;
+	color:lightgray;
+	unicode-bidi: bidi-override;
+	direction: rtl;
+}
+.rating > span {
+  display: inline-block;
+  position: relative;
+  font-size: 20px;
+}
+.rating > span:hover:before,
+.rating > span:hover ~ span:before {
+   content: "\2605";
+   position: absolute;
+   color:gold;
+   cursor: pointer;
+   cursor: hand;
+}
+
+.green{
+	color:green;
+}
+
+.red{
+	color:red;
+}
+
+#passwordUpdate{
+	height:60px;
+	width:100%;
+}
+
+.editImg{
+	position:absolute;
+	visibility:hidden;
+	z-index:2;
+}
+
+.successCheck{
+	display:none;
+	position: absolute;
+	top: 30%;
+	left: 40%;
+}
+
+#langUpdatedMsg{
+	display:none;
+}
+
+div.spacer
+{
+    font-size: 0; 
+    height: 10px;
+    line-height: 0;
+}
+
+
+#ft {
+	height:100px;
+	position:absolute;
+	bottom:0;
+}
+
+.ui-helper-hidden-accessible { display:none; }
+
+.ui-autocomplete{
+	
+}
+
+.ui-autocomplete { position: absolute; cursor: pointer; 
+	border-radius: 0px;
+	border: 1px solid #cccccc;
+	background-color: #e7e7e7;
+	list-style:none;}	
+
+/* workarounds */
+* html .ui-autocomplete { width:1px; } /* without this, the menu expands to 100% in IE6 */
+
+div.error {
+    background: #fff3f3;
+    border: 1px solid red;
+    color: #cc0000;
+    margin: 10px 0 5px 0;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    max-width:700px;
+}
+
+div.errors {
+    background: #fff3f3;
+    border: 1px solid red;
+    color: #cc0000;
+    margin: 10px 0 5px 0;
+    padding: 5px 0 5px 0;
+    max-width:700px;
+}
+div.errors ul {
+    list-style: none;
+    padding: 0;
+}
+div.errors li {
+	background: url(../images/skin/exclamation.png) 8px 0% no-repeat;
+    line-height: 16px;
+    padding-left: 30px;
+    max-width:700px;
+    padding-top: 5px;
+}
+
+/* centered columns styles */
+.row-centered {
+    text-align:center;
+}
+.col-centered {
+    display:inline-block;
+    float:none;
+    /* reset the text-align */
+    text-align:left;
+    /* inline-block space fix */
+    margin-right:-4px;
+}
+
+.footer{
+	position: absolute;
+	width: 100%;
+	margin-top: 0px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+footer{bottom:0;}
+@media screen and (max-width: 980px) {
+    footer { bottom:inherit;}
+}

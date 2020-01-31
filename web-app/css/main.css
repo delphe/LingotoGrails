@@ -1,0 +1,501 @@
+html * {
+    margin: 0;
+    /*padding: 0; SELECT NOT DISPLAYED CORRECTLY IN FIREFOX */
+}
+
+/* GENERAL */
+
+.spinner {
+    padding: 5px;
+    position: absolute;
+    right: 0;
+}
+
+body {
+    background: #fff;
+    color: #333;
+    font: 11px verdana, arial, helvetica, sans-serif;
+}
+#grailsLogo {
+	padding:20px;
+}
+
+a{
+	color: #00f;
+    font-weight: bold;
+    text-decoration: none;
+}
+a:hover{color: #006600;}
+a:active{color: #0f0;}
+
+h1 {
+    color: SteelBlue;
+    font-weight: bold;
+    font-size: 20px;
+    text-align: center;
+}
+
+h2{
+	padding-top: 2px;
+	font-size: 14px;
+	text-align: center;
+}
+h3{
+	padding-top: 2px;
+	font-size: 12px;
+	text-align: center;
+}
+
+.h2{
+	padding-top: 2px;
+	font-size: 14px;
+	text-align: center;
+}
+.h3{
+	padding-top: 2px;
+	font-size: 12px;
+	text-align: center;
+}
+
+.h2right{
+	padding-top: 2px;
+	font-size: 14px;
+	text-align: right;
+}
+.h3right{
+	padding-top: 2px;
+	font-size: 12px;
+	text-align: right;
+}
+
+
+ul {
+    padding-left: 15px;
+    margin: .6em 0 .3em 0;
+}
+
+dd {
+    text-align: left;
+    margin-left: 10px;
+    margin-top: 2px;
+}
+
+dd.floatright{
+	float: right;
+	margin-right: 10px;
+}
+
+input, select, textarea {
+    background-color: #fcfcfc;
+    border: 1px solid #ccc;
+    font: 11px verdana, arial, helvetica, sans-serif;
+    margin: 2px 0;
+    padding: 2px 4px;
+}
+input.login{
+	width:100px;
+}
+
+select {
+   padding: 2px 2px 2px 0;
+}
+textarea {
+	width: 500px;
+	height: 100px;
+	vertical-align: top;
+}
+
+input:focus, select:focus, textarea:focus {
+    border: 1px solid #b2d1ff;
+}
+
+.list-body {
+    float: left;
+    margin: 0 15px 10px 15px;
+}
+
+/* NAVIGATION MENU */
+
+.nav {
+    background: #fff url(../images/skin/shadow.jpg) bottom repeat-x;
+    border: 1px solid #ccc;
+    border-style: solid none solid none;
+    margin-top: 5px;
+    padding: 7px 12px;
+}
+
+.menuButton {
+    font-size: 10px;
+    padding: 0 5px;
+}
+.menuButton a {
+    color: #333;
+    padding: 4px 6px;
+}
+.menuButton a.home {
+    background: url(../images/skin/house.png) center left no-repeat;
+    color: #333;
+    padding-left: 25px;
+}
+.menuButton a.list {
+    background: url(../images/skin/database_table.png) center left no-repeat;
+    color: #333;
+    padding-left: 25px;
+}
+.menuButton a.create {
+    background: url(../images/skin/database_add.png) center left no-repeat;
+    color: #333;
+    padding-left: 25px;
+}
+
+/* MESSAGES AND ERRORS */
+
+.message {
+    background: #f3f8fc url(../images/skin/information.png) 8px 50% no-repeat;
+    border: 1px solid #b2d1ff;
+    color: #006dba;
+    margin: 10px 0 5px 0;
+    padding: 5px 5px 5px 30px
+}
+
+div.error {
+    background: #fff3f3 url(../images/skin/exclamation.png) 8px 0% no-repeat;
+    border: 1px solid red;
+    color: #cc0000;
+    margin: 10px 0 5px 0;
+    line-height: 16px;
+    padding-left: 30px;
+}
+
+div.errors {
+    background: #fff3f3;
+    border: 1px solid red;
+    color: #cc0000;
+    margin: 10px 0 5px 0;
+    padding: 5px 0 5px 0;
+}
+div.errors ul {
+    list-style: none;
+    padding: 0;
+}
+div.errors li {
+	background: url(../images/skin/exclamation.png) 8px 0% no-repeat;
+    line-height: 16px;
+    padding-left: 30px;
+}
+
+td.errors select {
+    border: 1px solid red;
+}
+td.errors input {
+    border: 1px solid red;
+}
+td.errors textarea {
+    border: 1px solid red;
+}
+
+/* TABLES */
+
+table {
+    width: 100%
+}
+tr {
+    border: 0;
+}
+td, th {
+    font: 11px verdana, arial, helvetica, sans-serif;
+    line-height: 12px;
+    padding: 5px 6px;
+    text-align: left;
+    vertical-align: center;
+}
+th {
+    background: #fff url(../images/skin/shadow.jpg);
+    color: #666;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 17px;
+    padding: 2px 6px;
+}
+th a:link, th a:visited, th a:hover {
+    color: #333;
+    display: block;
+    font-size: 10px;
+    text-decoration: none;
+    width: 100%;
+}
+th.asc a, th.desc a {
+    background-position: right;
+    background-repeat: no-repeat;
+}
+th.asc a {
+    background-image: url(../images/skin/sorted_asc.gif);
+}
+th.desc a {
+    background-image: url(../images/skin/sorted_desc.gif);
+}
+
+.odd {
+    background: #f7f7f7;
+}
+.even {
+    background: #fff;
+}
+
+/* PAGINATION */
+
+.paginateButtons {
+    color: #666;
+    font-size: 10px;
+    overflow: hidden;
+    padding: 10px 3px;
+}
+.paginateButtons a {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-color: #ccc #aaa #aaa #ccc;
+    color: #666;
+    margin: 0 3px;
+    padding: 2px 6px;
+}
+.paginateButtons span {
+    padding: 2px 3px;
+}
+
+/* DIALOG */
+
+.dialog table {
+    padding: 5px 0;
+}
+
+.prop {
+    padding: 5px;
+}
+.prop .name {
+    text-align: left;
+    width: 15%;
+    white-space: nowrap;
+}
+.prop .value {
+    text-align: left;
+    width: 85%;
+}
+
+/* ACTION BUTTONS */
+
+.buttons {
+    background: #ADFFB8;
+    border: 1px solid #ccc;
+    color: #666;
+    font-size: 10px;
+    overflow: hidden;
+    position: absolute;
+    padding: 2px 4px 2px 2px;
+}
+
+.buttons input {
+    background: #fff;
+    border: 0;
+    color: #333;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 3px;
+    overflow: visible;
+    padding: 2px 6px;
+}
+
+.buttons input.delete {
+    background: white url(../images/skin/database_delete.png) 5px 50% no-repeat;
+    padding-left: 28px;
+}
+.buttons input.edit {
+    background: white url(../images/skin/database_edit.png) 5px 50% no-repeat;
+    padding-left: 28px;
+}
+.buttons input.save {
+    background: white url(../images/skin/database_save.png) 5px 50% no-repeat;
+    padding-left: 28px;
+}
+
+.buttons input.cancel {
+    background: white url(../images/skin/database_cancel.png) 5px 50% no-repeat;
+    padding-left: 28px;
+}
+
+.previousButton{
+	background: transparent url(../images/Left_arrow_blue.jpg) 50% no-repeat;
+	padding: 25px 50px;
+	border: 0;
+	float: right;
+	font-color: #FEFCFF;
+	font-size: 1px;
+	border:1px solid transparent;
+}
+.previousButton:hover{
+	border: 1px solid #ccc;
+}
+.previousButton:active{
+	border:1px solid black;
+}
+
+.nextArrow:hover{
+	background: transparent url(../images/next-black.png) 50% no-repeat;
+}
+
+.largeLink{
+	font-size: 28px;
+}
+
+.imgLink{
+	float: left;
+	font-size: 28px;
+	border:3px solid transparent;
+}
+
+.imgLink:hover{
+	border:3px solid black;
+	cursor:pointer;
+}
+
+.absoluteImg{
+	float: left;
+	position:absolute;
+	z-index:1;
+}
+.quizValidation{
+	position:absolute;
+	visibility:hidden;
+	z-index:2;
+}
+
+.lessonStyle {
+	border: 1px dotted gray;
+	background: #f4f3ed;
+	padding: 2px;
+}
+
+li.sortable-item{
+	cursor: move;
+}
+
+li:first-child img.up-arrow{
+	visibility: hidden;
+}
+
+li:last-child img.down-arrow{
+	visibility: hidden;
+}
+
+hr{ display: block; 
+	height: 1px;
+    border: 0; 
+    border-top: 1px solid #ccc;
+    padding: 0; 
+}
+
+#save-order-buttons{
+	position: fixed;
+	bottom: 2px;
+	visibility: hidden;
+}
+
+.floatright{
+	float: right;
+}
+
+.floatleft{
+	float: left;
+}
+
+.center{
+	text-align: center;
+}
+
+.hideit{
+/* 	visibility: hidden; 
+	width:0px;
+	height:0px;*/
+	display: none;
+}
+
+.lessonPlan{
+	width: 260px;
+}
+
+.rating {
+  unicode-bidi: bidi-override;
+  direction: rtl;
+}
+.ratingGold {
+	content: "\2605";
+	font-size: 20px;
+	color:gold;
+	unicode-bidi: bidi-override;
+	direction: rtl;
+}
+.ratingGray {
+	content: "\2605";
+	font-size: 20px;
+	color:lightgray;
+	unicode-bidi: bidi-override;
+	direction: rtl;
+}
+.rating > span {
+  display: inline-block;
+  position: relative;
+  font-size: 20px;
+}
+.rating > span:hover:before,
+.rating > span:hover ~ span:before {
+   content: "\2605";
+   position: absolute;
+   color:gold;
+   cursor: pointer;
+   cursor: hand;
+}
+
+.green{
+	color:green;
+}
+
+.red{
+	color:red;
+}
+
+#passwordUpdate{
+	height:60px;
+	width:100%;
+}
+
+.editImg{
+	position:absolute;
+	visibility:hidden;
+	z-index:2;
+}
+
+.successCheck{
+	display:none;
+	position: absolute;
+	top: 30%;
+	left: 40%;
+}
+
+#langUpdatedMsg{
+	display:none;
+}
+
+div.spacer
+{
+    font-size: 0; 
+    height: 10px;
+    line-height: 0;
+}
+
+
+#ft {
+	height:100px;
+	position:absolute;
+	bottom:0;
+}
+	
